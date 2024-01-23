@@ -7,10 +7,12 @@ set_warnings("all","error")
 
 add_rules("mode.debug", "mode.release")
 
+set_configvar("USE_PICO", 0)
 option("with_pico")
     set_default(false)
     set_showmenu(true)
     set_description("use pico")
+    set_configvar("USE_PICO", 1)
 option_end()
 
 add_requireconfs("gtest", {configs={main=true}})
@@ -20,6 +22,10 @@ add_includedirs("./include")
 
 target("rapidjson")
     set_kind("headeronly")
+    add_headerfiles("./include/**.h","./include/**.hpp", {prefixdir = "rapidhttp"})
+    -- add_installfiles("./include/**.h", {prefixdir = "rapidhttp"})
+    set_configdir("./include/rapidhttp/")
+    add_configfiles("./include/rapidhttp/xmake_config.h.in",{filename = "cmake_config.h"})
     on_config(function (target) 
         if not os.exists("./third_party/http-parser/http_parser.h") then 
             os.vrun("git submodule update --init --force")
@@ -42,6 +48,10 @@ target("rapidjson")
             end
         end
     end)
+    -- on_install(function (target)
+    --     os.vrun("mkdir "..target:installdir().."/include/rapidhttp")
+    -- end)
+
 
 
 function scan_targets(prefix)
@@ -68,3 +78,6 @@ target("unitest")
     add_files("test/*.cpp")
     add_deps("rapidjson")
     add_packages("gtest")
+
+    add_tests("default")
+    
