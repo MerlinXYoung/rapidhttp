@@ -266,7 +266,7 @@ namespace rapidhttp {
         if (!bytes || len < bytes) return false;
 #define _WRITE_STRING(ss) \
         do {\
-            memcpy(buf, ss.c_str(), ss.size()); \
+            memcpy(buf, ss.data(), ss.size()); \
             buf += ss.size(); \
         } while(0);
 

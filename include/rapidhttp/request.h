@@ -42,7 +42,7 @@ class TRequest {
     using headers_type = std::vector<std::pair<string_t, string_t>>;
     TRequest() = default;
     ~TRequest() = default;
-    TRequest(uint32_t major, uint32_t minor_, http_method method_, string_t&& uri,
+    TRequest(uint32_t major, uint32_t minor, http_method method, string_t&& uri,
              headers_type&& header_fields, string_t&& body)
         : major_(major),
           minor_(major),
@@ -73,6 +73,7 @@ class TRequest {
         uri_ = other.uri_;
         header_fields_ = other.header_fields_;
         body_ = other.body_;
+        return *this;
     }
 
     TRequest& operator=(TRequest&& other) {
@@ -81,6 +82,7 @@ class TRequest {
         uri_ = std::move(other.uri_);
         header_fields_ = std::move(other.header_fields_);
         body_ = std::move(other.body_);
+        return *this;
     }
 
     template <class StringT1>
@@ -152,7 +154,7 @@ inline size_t TRequest<StringT>::ByteSize() const {
     // TODO: static array
     // auto method = http_method_str(request_method_);
     // bytes += ::strlen(method);
-    bytes += http_method_string_len(http_method(method_));
+    bytes += http_method_string_len(http_method(method_)) + 1;
     // bytes += request_method_.size() + 1; // GET\s
     bytes += uri_.size() + 1;  // /uri\s
     bytes += 10;               // HTTP/1.1CRLF

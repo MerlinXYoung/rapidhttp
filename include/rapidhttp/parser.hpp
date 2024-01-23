@@ -363,7 +363,7 @@ inline void TParser<StringT>::SetMethod(http_method m) {
 }
 template <typename StringT>
 inline const char *TParser<StringT>::GetMethodCStr() {
-    return http_method_string_len(request_method_);
+    return http_method_str(request_method_);
 }
 // template <typename StringT>
 // inline StringT const &TParser<StringT>::GetMethodStr() {

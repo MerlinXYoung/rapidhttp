@@ -10,6 +10,7 @@ namespace rapidhttp {
 
 template <class StringT>
 class TResponse {
+  public:
     typedef StringT string_t;
     using headers_type = std::vector<std::pair<string_t, string_t>>;
     TResponse() = default;
@@ -44,6 +45,7 @@ class TResponse {
         status_ = other.status_;
         header_fields_ = other.header_fields_;
         body_ = other.body_;
+        return *this;
     }
 
     TResponse &operator=(TResponse &&other) {
@@ -52,6 +54,7 @@ class TResponse {
         status_ = std::move(other.status_);
         header_fields_ = std::move(other.header_fields_);
         body_ = std::move(other.body_);
+        return *this;
     }
 
     template <class StringT1>
