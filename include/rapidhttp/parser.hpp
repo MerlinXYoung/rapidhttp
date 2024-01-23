@@ -4,12 +4,31 @@
 
 #include <algorithm>
 
-#include "document.h"
+#include "parser.h"
 
 namespace rapidhttp {
 
+// namespace detail {
+// static constexpr uint8_t method_string_lens[] = {
+// #define XX(num, name, string) (uint8_t)::strlen(#string),
+//     HTTP_METHOD_MAP(XX)
+// #undef XX
+// };
+// }  // namespace detail
+
+// inline int http_method_string_len(http_method m) {
+//     return ELEM_AT(detail::method_string_lens, m, 9 /*<unkonwn>*/);
+// }
+
+// inline http_method get_http_method(const char *s) {
+//     for (uint32_t i = 0; i < ARRAY_SIZE(method_strings); ++i) {
+//         if (::strcmp(s, method_strings[i]) == 0) return http_method(i);
+//     }
+//     return http_method(0);
+// }
+
 template <typename StringT>
-inline THttpDocument<StringT>::THttpDocument(DocumentType type) : type_(type) {
+inline TParser<StringT>::TParser(ParserType type) : type_(type) {
     Reset();
 #if USE_PICO
 #else
@@ -26,7 +45,7 @@ inline THttpDocument<StringT>::THttpDocument(DocumentType type) : type_(type) {
 
 template <typename StringT>
 template <typename OStringT>
-void THttpDocument<StringT>::CopyTo(THttpDocument<OStringT>& clone) const {
+void TParser<StringT>::CopyTo(TParser<OStringT> &clone) const {
 #define _COPY_TO(param) clone.param = this->param
 
     _COPY_TO(type_);
@@ -47,7 +66,7 @@ void THttpDocument<StringT>::CopyTo(THttpDocument<OStringT>& clone) const {
 
     clone.header_fields_.clear();
     clone.header_fields_.reserve(this->header_fields_.size());
-    for (auto const& kv : this->header_fields_) {
+    for (auto const &kv : this->header_fields_) {
         clone.header_fields_.emplace_back(
             std::pair<OStringT, OStringT>((OStringT)kv.first, (OStringT)kv.second));
     }
@@ -59,16 +78,17 @@ void THttpDocument<StringT>::CopyTo(THttpDocument<OStringT>& clone) const {
 /// 流式解析
 // @buf_ref: 外部传入的缓冲区首地址, 再调用Storage前必须保证缓冲区有效且不变.
 // @len: 缓冲区长度
-// @returns：解析完成返回error_code=0, 解析一半返回error_code=1, 解析失败返回其他错误码.
+// @returns：解析完成返回error_code=0, 解析一半返回error_code=1,
+// 解析失败返回其他错误码.
 template <typename StringT>
-inline size_t THttpDocument<StringT>::PartailParse(std::string const& buf) {
+inline size_t TParser<StringT>::PartailParse(std::string const &buf) {
     return PartailParse(buf.c_str(), buf.size());
 }
 
 #if USE_PICO
 #else
 template <typename StringT>
-inline size_t THttpDocument<StringT>::PartailParse(const char *buf_ref, size_t len) {
+inline size_t TParser<StringT>::PartailParse(const char *buf_ref, size_t len) {
     if (ParseDone() || ParseError()) Reset();
 
     size_t parsed = http_parser_execute(&parser_, &settings_, buf_ref, len);
@@ -79,52 +99,51 @@ inline size_t THttpDocument<StringT>::PartailParse(const char *buf_ref, size_t l
     return parsed;
 }
 template <typename StringT>
-inline bool THttpDocument<StringT>::PartailParseEof() {
+inline bool TParser<StringT>::PartailParseEof() {
     if (ParseDone() || ParseError()) return false;
 
     PartailParse("", 0);
     return ParseDone();
 }
 template <typename StringT>
-inline bool THttpDocument<StringT>::ParseDone() {
+inline bool TParser<StringT>::ParseDone() {
     return parse_done_;
 }
 
 template <typename StringT>
-inline int THttpDocument<StringT>::sOnHeadersComplete(http_parser *parser) {
-    return ((THttpDocument *)parser->data)->OnHeadersComplete(parser);
+inline int TParser<StringT>::sOnHeadersComplete(http_parser *parser) {
+    return ((TParser *)parser->data)->OnHeadersComplete(parser);
 }
 template <typename StringT>
-inline int THttpDocument<StringT>::sOnMessageComplete(http_parser *parser) {
-    return ((THttpDocument *)parser->data)->OnMessageComplete(parser);
+inline int TParser<StringT>::sOnMessageComplete(http_parser *parser) {
+    return ((TParser *)parser->data)->OnMessageComplete(parser);
 }
 template <typename StringT>
-inline int THttpDocument<StringT>::sOnUrl(http_parser *parser, const char *at, size_t length) {
-    return ((THttpDocument *)parser->data)->OnUrl(parser, at, length);
+inline int TParser<StringT>::sOnUrl(http_parser *parser, const char *at, size_t length) {
+    return ((TParser *)parser->data)->OnUrl(parser, at, length);
 }
 template <typename StringT>
-inline int THttpDocument<StringT>::sOnStatus(http_parser *parser, const char *at, size_t length) {
-    return ((THttpDocument *)parser->data)->OnStatus(parser, at, length);
+inline int TParser<StringT>::sOnStatus(http_parser *parser, const char *at, size_t length) {
+    return ((TParser *)parser->data)->OnStatus(parser, at, length);
 }
 template <typename StringT>
-inline int THttpDocument<StringT>::sOnHeaderField(http_parser *parser, const char *at,
-                                                  size_t length) {
-    return ((THttpDocument *)parser->data)->OnHeaderField(parser, at, length);
+inline int TParser<StringT>::sOnHeaderField(http_parser *parser, const char *at, size_t length) {
+    return ((TParser *)parser->data)->OnHeaderField(parser, at, length);
 }
 template <typename StringT>
-inline int THttpDocument<StringT>::sOnHeaderValue(http_parser *parser, const char *at,
-                                                  size_t length) {
-    return ((THttpDocument *)parser->data)->OnHeaderValue(parser, at, length);
+inline int TParser<StringT>::sOnHeaderValue(http_parser *parser, const char *at, size_t length) {
+    return ((TParser *)parser->data)->OnHeaderValue(parser, at, length);
 }
 template <typename StringT>
-inline int THttpDocument<StringT>::sOnBody(http_parser *parser, const char *at, size_t length) {
-    return ((THttpDocument *)parser->data)->OnBody(parser, at, length);
+inline int TParser<StringT>::sOnBody(http_parser *parser, const char *at, size_t length) {
+    return ((TParser *)parser->data)->OnBody(parser, at, length);
 }
 
 template <typename StringT>
-inline int THttpDocument<StringT>::OnHeadersComplete(http_parser *parser) {
+inline int TParser<StringT>::OnHeadersComplete(http_parser *parser) {
     if (IsRequest())
-        request_method_ = http_method_str((http_method)parser->method);
+        // request_method_ = http_method_str((http_method)parser->method);
+        request_method_ = (http_method)parser->method;
     else
         response_status_code_ = parser->status_code;
     major_ = parser->http_major;
@@ -137,23 +156,22 @@ inline int THttpDocument<StringT>::OnHeadersComplete(http_parser *parser) {
     return 0;
 }
 template <typename StringT>
-inline int THttpDocument<StringT>::OnMessageComplete(http_parser *parser) {
+inline int TParser<StringT>::OnMessageComplete(http_parser *parser) {
     parse_done_ = true;
     return 0;
 }
 template <typename StringT>
-inline int THttpDocument<StringT>::OnUrl(http_parser *parser, const char *at, size_t length) {
+inline int TParser<StringT>::OnUrl(http_parser *parser, const char *at, size_t length) {
     request_uri_.append(at, length);
     return 0;
 }
 template <typename StringT>
-inline int THttpDocument<StringT>::OnStatus(http_parser *parser, const char *at, size_t length) {
+inline int TParser<StringT>::OnStatus(http_parser *parser, const char *at, size_t length) {
     response_status_.append(at, length);
     return 0;
 }
 template <typename StringT>
-inline int THttpDocument<StringT>::OnHeaderField(http_parser *parser, const char *at,
-                                                 size_t length) {
+inline int TParser<StringT>::OnHeaderField(http_parser *parser, const char *at, size_t length) {
     if (kv_state_ == 1) {
         header_fields_.emplace_back(std::move(callback_header_key_cache_),
                                     std::move(callback_header_value_cache_));
@@ -164,21 +182,20 @@ inline int THttpDocument<StringT>::OnHeaderField(http_parser *parser, const char
     return 0;
 }
 template <typename StringT>
-inline int THttpDocument<StringT>::OnHeaderValue(http_parser *parser, const char *at,
-                                                 size_t length) {
+inline int TParser<StringT>::OnHeaderValue(http_parser *parser, const char *at, size_t length) {
     kv_state_ = 1;
     callback_header_value_cache_.append(at, length);
     return 0;
 }
 template <typename StringT>
-inline int THttpDocument<StringT>::OnBody(http_parser *parser, const char *at, size_t length) {
+inline int TParser<StringT>::OnBody(http_parser *parser, const char *at, size_t length) {
     body_.append(at, length);
     return 0;
 }
 #endif
 
 template <typename StringT>
-inline void THttpDocument<StringT>::Reset() {
+inline void TParser<StringT>::Reset() {
 #if USE_PICO
 #else
     http_parser_init(&parser_, IsRequest() ? HTTP_REQUEST : HTTP_RESPONSE);
@@ -192,7 +209,8 @@ inline void THttpDocument<StringT>::Reset() {
     callback_header_value_cache_.clear();
     major_ = 1;
     minor_ = 1;
-    request_method_.clear();
+    //   request_method_.clear();
+    request_method_ = http_method(0);
     request_uri_.clear();
     response_status_code_ = 0;
     response_status_.clear();
@@ -202,33 +220,37 @@ inline void THttpDocument<StringT>::Reset() {
 
 // 返回解析错误码
 template <typename StringT>
-inline std::error_code THttpDocument<StringT>::ParseError() {
+inline std::error_code TParser<StringT>::ParseError() {
     return ec_;
 }
 
+// template <typename StringT>
+// inline bool TParser<StringT>::IsInitialized() const {
+//     if (IsRequest())
+//         return CheckMethod() && CheckUri() && CheckVersion();
+//     else
+//         return CheckVersion() && CheckStatusCode() && CheckStatus();
+// }
+#if 0
 template <typename StringT>
-inline bool THttpDocument<StringT>::IsInitialized() const {
-    if (IsRequest())
-        return CheckMethod() && CheckUri() && CheckVersion();
-    else
-        return CheckVersion() && CheckStatusCode() && CheckStatus();
-}
-
-template <typename StringT>
-inline size_t THttpDocument<StringT>::ByteSize() const {
+inline size_t TParser<StringT>::ByteSize() const {
     if (!IsInitialized()) return 0;
 
     size_t bytes = 0;
     if (IsRequest()) {
-        bytes += request_method_.size() + 1;  // GET\s
-        bytes += request_uri_.size() + 1;     // /uri\s
-        bytes += 10;                          // HTTP/1.1CRLF
+        // TODO: static array
+        // auto method = http_method_str(request_method_);
+        // bytes += ::strlen(method);
+        bytes += http_method_string_len(request_method_);
+        // bytes += request_method_.size() + 1; // GET\s
+        bytes += request_uri_.size() + 1;  // /uri\s
+        bytes += 10;                       // HTTP/1.1CRLF
     } else {
         bytes += 9;                                            // HTTP/1.1\s
         bytes += UIntegerByteSize(response_status_code_) + 1;  // 200\s
         bytes += response_status_.size() + 2;                  // okCRLF
     }
-    for (auto const& kv : header_fields_) {
+    for (auto const &kv : header_fields_) {
         bytes += kv.first.size() + 2 + kv.second.size() + 2;
     }
     bytes += 2;
@@ -237,13 +259,13 @@ inline size_t THttpDocument<StringT>::ByteSize() const {
 }
 
 template <typename StringT>
-inline bool THttpDocument<StringT>::Serialize(char* buf, size_t len) {
+inline bool TParser<StringT>::Serialize(char *buf, size_t len) {
     size_t bytes = ByteSize();
     if (!bytes || len < bytes) return false;
-#define _WRITE_STRING(ss)                  \
-    do {                                   \
-        memcpy(buf, ss.data(), ss.size()); \
-        buf += ss.size();                  \
+#define _WRITE_STRING(ss)                   \
+    do {                                    \
+        memcpy(buf, ss.c_str(), ss.size()); \
+        buf += ss.size();                   \
     } while (0);
 
 #define _WRITE_C_STR(c_str, length) \
@@ -256,9 +278,10 @@ inline bool THttpDocument<StringT>::Serialize(char* buf, size_t len) {
     *buf++ = '\r';    \
     *buf++ = '\n'
 
-    char* ori = buf;
+    char *ori = buf;
     if (IsRequest()) {
-        _WRITE_STRING(request_method_);
+        // _WRITE_STRING(request_method_);
+        _WRITE_C_STR(http_method_str(request_method_), http_method_string_len(request_method_));
         *buf++ = ' ';
         _WRITE_STRING(request_uri_);
         _WRITE_C_STR(" HTTP/", 6);
@@ -278,7 +301,7 @@ inline bool THttpDocument<StringT>::Serialize(char* buf, size_t len) {
         _WRITE_STRING(response_status_);
     }
     _WRITE_CRLF();
-    for (auto const& kv : header_fields_) {
+    for (auto const &kv : header_fields_) {
         _WRITE_STRING(kv.first);
         *buf++ = ':';
         *buf++ = ' ';
@@ -295,7 +318,7 @@ inline bool THttpDocument<StringT>::Serialize(char* buf, size_t len) {
 #undef _WRITE_STRING
 }
 template <typename StringT>
-inline std::string THttpDocument<StringT>::SerializeAsString() {
+inline std::string TParser<StringT>::SerializeAsString() {
     std::string s;
     size_t bytes = ByteSize();
     if (!bytes) return "";
@@ -303,128 +326,167 @@ inline std::string THttpDocument<StringT>::SerializeAsString() {
     if (!Serialize(&s[0], bytes)) return "";
     return s;
 }
+#endif
 template <typename StringT>
-inline bool THttpDocument<StringT>::CheckMethod() const {
-    return !request_method_.empty();
+inline bool TParser<StringT>::CheckMethod() const {
+    //   return !request_method_.empty();
+    return request_method_ == -1;
 }
 template <typename StringT>
-inline bool THttpDocument<StringT>::CheckUri() const {
+inline bool TParser<StringT>::CheckUri() const {
     return !request_uri_.empty() && request_uri_[0] == '/';
 }
 template <typename StringT>
-inline bool THttpDocument<StringT>::CheckStatusCode() const {
+inline bool TParser<StringT>::CheckStatusCode() const {
     return response_status_code_ >= 100 && response_status_code_ < 1000;
 }
 template <typename StringT>
-inline bool THttpDocument<StringT>::CheckStatus() const {
+inline bool TParser<StringT>::CheckStatus() const {
     return !response_status_.empty();
 }
 template <typename StringT>
-inline bool THttpDocument<StringT>::CheckVersion() const {
+inline bool TParser<StringT>::CheckVersion() const {
     return major_ >= 0 && major_ <= 9 && minor_ >= 0 && minor_ <= 9;
 }
 /// --------------------------------------------------------
 
 /// ------------------- fields get/set ---------------------
+
 template <typename StringT>
-inline StringT const& THttpDocument<StringT>::GetMethod() {
+inline http_method TParser<StringT>::GetMethod() {
     return request_method_;
 }
 
 template <typename StringT>
-inline void THttpDocument<StringT>::SetMethod(const char* m) {
+inline void TParser<StringT>::SetMethod(http_method m) {
     request_method_ = m;
 }
 template <typename StringT>
-inline void THttpDocument<StringT>::SetMethod(std::string const& m) {
-    request_method_ = m;
+inline const char *TParser<StringT>::GetMethodCStr() {
+    return http_method_str(request_method_);
+}
+// template <typename StringT>
+// inline StringT const &TParser<StringT>::GetMethodStr() {
+//   return request_method_;
+// }
+
+template <typename StringT>
+inline void TParser<StringT>::SetMethod(const char *m) {
+    request_method_ = get_http_method(m);
 }
 template <typename StringT>
-inline StringT const& THttpDocument<StringT>::GetUri() {
+inline void TParser<StringT>::SetMethod(std::string const &m) {
+    request_method_ = get_http_method(m.c_str());
+}
+
+template <typename StringT>
+inline StringT const &TParser<StringT>::GetUri() {
     return request_uri_;
 }
 template <typename StringT>
-inline void THttpDocument<StringT>::SetUri(const char* m) {
+inline void TParser<StringT>::SetUri(const char *m) {
     request_uri_ = m;
 }
 template <typename StringT>
-inline void THttpDocument<StringT>::SetUri(std::string const& m) {
+inline void TParser<StringT>::SetUri(std::string const &m) {
     request_uri_ = m;
 }
 template <typename StringT>
-inline StringT const& THttpDocument<StringT>::GetStatus() {
+inline StringT const &TParser<StringT>::GetStatus() {
     return response_status_;
 }
 template <typename StringT>
-inline void THttpDocument<StringT>::SetStatus(const char* m) {
+inline void TParser<StringT>::SetStatus(const char *m) {
     response_status_ = m;
 }
 template <typename StringT>
-inline void THttpDocument<StringT>::SetStatus(std::string const& m) {
+inline void TParser<StringT>::SetStatus(std::string const &m) {
     response_status_ = m;
 }
 template <typename StringT>
-inline int THttpDocument<StringT>::GetStatusCode() {
+inline int TParser<StringT>::GetStatusCode() {
     return response_status_code_;
 }
 template <typename StringT>
-inline void THttpDocument<StringT>::SetStatusCode(int code) {
+inline void TParser<StringT>::SetStatusCode(int code) {
     response_status_code_ = code;
 }
 template <typename StringT>
-inline int THttpDocument<StringT>::GetMajor() {
+inline int TParser<StringT>::GetMajor() {
     return major_;
 }
 template <typename StringT>
-inline void THttpDocument<StringT>::SetMajor(int v) {
+inline void TParser<StringT>::SetMajor(int v) {
     major_ = v;
 }
 template <typename StringT>
-inline int THttpDocument<StringT>::GetMinor() {
+inline int TParser<StringT>::GetMinor() {
     return minor_;
 }
 template <typename StringT>
-inline void THttpDocument<StringT>::SetMinor(int v) {
+inline void TParser<StringT>::SetMinor(int v) {
     minor_ = v;
 }
 template <typename StringT>
-inline StringT const& THttpDocument<StringT>::GetField(std::string const& k) {
+inline StringT const &TParser<StringT>::GetField(std::string const &k) {
     static const string_t empty_string;
     auto it = std::find_if(header_fields_.begin(), header_fields_.end(),
-                           [&](std::pair<string_t, string_t> const& kv) { return kv.first == k; });
+                           [&](std::pair<string_t, string_t> const &kv) { return kv.first == k; });
     if (header_fields_.end() == it)
         return empty_string;
     else
         return it->second;
 }
 template <typename StringT>
-inline void THttpDocument<StringT>::SetField(std::string const& k, const char* m) {
+inline void TParser<StringT>::SetField(std::string const &k, const char *m) {
     auto it = std::find_if(header_fields_.begin(), header_fields_.end(),
-                           [&](std::pair<string_t, string_t> const& kv) { return kv.first == k; });
+                           [&](std::pair<string_t, string_t> const &kv) { return kv.first == k; });
     if (header_fields_.end() == it)
         header_fields_.emplace_back(k, m);
     else
         it->second = m;
 }
 template <typename StringT>
-inline void THttpDocument<StringT>::SetField(std::string const& k, std::string const& m) {
+inline void TParser<StringT>::SetField(std::string const &k, std::string const &m) {
     return SetField(k, m.c_str());
 }
 template <typename StringT>
-inline StringT const& THttpDocument<StringT>::GetBody() {
+inline StringT const &TParser<StringT>::GetBody() {
     return body_;
 }
 template <typename StringT>
-inline void THttpDocument<StringT>::SetBody(const char* m) {
+inline void TParser<StringT>::SetBody(const char *m) {
     body_ = m;
 }
 template <typename StringT>
-inline void THttpDocument<StringT>::SetBody(std::string const& m) {
+inline void TParser<StringT>::SetBody(std::string const &m) {
     body_ = m;
+}
+template <typename StringT>
+inline typename TParser<StringT>::request_t TParser<StringT>::plunderRequest() {
+    return request_t(major_, minor_, request_method_, std::move(request_uri_),
+                     std::move(header_fields_), std::move(body_));
+}
+template <typename StringT>
+inline typename TParser<StringT>::response_t TParser<StringT>::plunderResponse() {
+    return response_t(major_, minor_, response_status_code_, std::move(response_status_),
+                      std::move(header_fields_), std::move(body_));
+}
+template <typename StringT>
+template <typename OStringT>
+TRequest<OStringT> TParser<StringT>::plunderRequest() {
+    return TRequest<OStringT>(major_, minor_, request_method_, std::move(request_uri_),
+                              std::move(header_fields_), std::move(body_));
+}
+template <typename StringT>
+template <typename OStringT>
+TResponse<OStringT> TParser<StringT>::plunderResponse() {
+    return TResponse<OStringT>(major_, minor_, response_status_code_, std::move(response_status_),
+                               std::move(header_fields_), std::move(body_));
 }
 /// --------------------------------------------------------
 
-typedef THttpDocument<std::string> HttpDocument;
-typedef THttpDocument<StringRef> HttpDocumentRef;
+typedef TParser<std::string> HttpDocument;
+typedef TParser<StringRef> HttpDocumentRef;
 
 }  // namespace rapidhttp
