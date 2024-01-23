@@ -7,6 +7,12 @@ set_warnings("all","error")
 
 add_rules("mode.debug", "mode.release")
 
+option("with_pico")
+    set_default(false)
+    set_showmenu(true)
+    set_description("use pico")
+option_end()
+
 add_requireconfs("gtest", {configs={main=true}})
 add_requires("gtest 1.12.0", "benchmark")
 
@@ -19,9 +25,21 @@ target("rapidjson")
             os.vrun("git submodule update --init --force")
         end
     end)
+    on_clean(function (target) 
+        os.vrun("rm -rf ./include/rapidhttp/layer.hpp")
+    end)
     on_build(function (target) 
+    --  print(has_config("with_pico"), is_config("with_pico", true), get_config("with_pico") )
         if not os.exists("./include/rapidhttp/layer.hpp") then
-            os.vrun("./scripts/extract_http_parser.sh .")
+            -- print("%%%d: %s", opt.progress, "./include/rapidhttp/layer.hpp")
+           
+            if has_config("with_pico") then
+                print("create rapidhttp/layer.hpp by pico ...")
+                os.vrun("./scripts/extract_pico.sh .")
+            else 
+                print("create rapidhttp/layer.hpp by http_parser ...")
+                os.vrun("./scripts/extract_http_parser.sh .")
+            end
         end
     end)
 
