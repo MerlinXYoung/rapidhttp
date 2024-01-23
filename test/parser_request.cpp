@@ -3,6 +3,10 @@
 #include <unistd.h>
 
 #include <iostream>
+
+#include "rapidhttp/request.h"
+#include "rapidhttp/stringref.h"
+
 using namespace std;
 using namespace rapidhttp;
 
@@ -45,14 +49,14 @@ static std::string c_http_request_err_3 =
     "User-Agent: gtest.proxy\r\n";
 
 template <typename String>
-void test_parse_request() {
+static void test_parse_request() {
     TRequestParser<String> parser;
     TRequest<String> request;
     size_t bytes = parser.PartailParse(c_http_request);
     EXPECT_EQ(bytes, c_http_request.size());
     EXPECT_TRUE(!parser.ParseError());
 
-    EXPECT_EQ(parser.GetMethodCStr(), "GET");
+    EXPECT_STREQ(parser.GetMethodCStr(), "GET");
     EXPECT_EQ(parser.GetUri(), "/uri/abc");
     EXPECT_EQ(parser.GetMajor(), 1);
     EXPECT_EQ(parser.GetMinor(), 1);
@@ -67,7 +71,7 @@ void test_parse_request() {
         EXPECT_TRUE(!parser.ParseError());
     }
 
-    EXPECT_EQ(parser.GetMethodCStr(), "GET");
+    EXPECT_STREQ(parser.GetMethodCStr(), "GET");
     EXPECT_EQ(parser.GetUri(), "/uri/abc");
     EXPECT_EQ(parser.GetMajor(), 1);
     EXPECT_EQ(parser.GetMinor(), 1);
@@ -79,7 +83,7 @@ void test_parse_request() {
     bytes = parser.PartailParse(c_http_request_2);
     EXPECT_EQ(bytes, c_http_request_2.size());
     EXPECT_TRUE(!parser.ParseError());
-    EXPECT_EQ(parser.GetMethodCStr(), "POST");
+    EXPECT_STREQ(parser.GetMethodCStr(), "POST");
     EXPECT_EQ(parser.GetUri(), "/uri/abc");
     EXPECT_EQ(parser.GetMajor(), 1);
     EXPECT_EQ(parser.GetMinor(), 1);
@@ -123,7 +127,7 @@ void test_parse_request() {
         EXPECT_TRUE(!parser.ParseError());
         EXPECT_TRUE(parser.ParseDone());
 
-        EXPECT_EQ(parser.GetMethodCStr(), "GET");
+        EXPECT_STREQ(parser.GetMethodCStr(), "GET");
         EXPECT_EQ(parser.GetUri(), "/uri/abc");
         EXPECT_EQ(parser.GetMajor(), 1);
         EXPECT_EQ(parser.GetMinor(), 1);
@@ -132,6 +136,8 @@ void test_parse_request() {
         EXPECT_EQ(parser.GetField("Connection"), "Keep-Alive");
         EXPECT_EQ(parser.GetField("User-Agent"), "");
     }
+    // for stringref
+    parser.PartailParse(c_http_request);
 
     char buf[256] = {};
     request = parser.plunderRequest();
@@ -151,17 +157,17 @@ void test_parse_request() {
     EXPECT_EQ(bytes, c_http_request_2.size());
     EXPECT_EQ(c_http_request_2, buf);
 }
-#if 0
-void copyto_request() {
+#if 1
+static void copyto_request() {
     std::string s = c_http_request_2;
 
-    rapidhttp::HttpDocumentRef parser(rapidhttp::Request);
+    rapidhttp::TRequestParser<std::string> parser;
     size_t bytes = parser.PartailParse(s);
     EXPECT_EQ(bytes, s.size());
     EXPECT_TRUE(!parser.ParseError());
 
 #define _CHECK_DOC(parser)                                   \
-    EXPECT_EQ(parser.GetMethod(), "POST");                   \
+    EXPECT_STREQ(parser.GetMethodCStr(), "POST");            \
     EXPECT_EQ(parser.GetUri(), "/uri/abc");                  \
     EXPECT_EQ(parser.GetMajor(), 1);                         \
     EXPECT_EQ(parser.GetMinor(), 1);                         \
@@ -173,28 +179,19 @@ void copyto_request() {
 
     _CHECK_DOC(parser);
 
-    // rapidhttp::HttpDocumentRef doc2(rapidhttp::Request);
-    // parser.CopyTo(doc2);
-    // _CHECK_DOC(doc2);
+    auto request = parser.plunderRequest();
 
-    // rapidhttp::HttpDocument doc3(rapidhttp::Request);
-    // doc2.CopyTo(doc3);
-    // _CHECK_DOC(doc3);
+    TRequest<StringRef> requestRef(request);
 
-    // rapidhttp::HttpDocument doc4(rapidhttp::Request);
-    // doc2.CopyTo(doc4);
-    // _CHECK_DOC(doc4);
-    // doc3.CopyTo(doc4);
-    // _CHECK_DOC(doc4);
+    EXPECT_EQ(request.SerializeAsString(), requestRef.SerializeAsString());
 
-    // s = "xx";
-    // _CHECK_DOC(doc3);
-    // _CHECK_DOC(doc4);
+    TRequest<std::string> tmp = requestRef;
+    EXPECT_EQ(tmp.SerializeAsString(), requestRef.SerializeAsString());
 }
 #endif
 
 TEST(parser, request) {
     test_parse_request<std::string>();
-    // test_parse_request<rapidhttp::HttpDocumentRef>();
-    // copyto_request();
+    test_parse_request<StringRef>();
+    copyto_request();
 }

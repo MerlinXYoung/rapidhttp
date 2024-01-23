@@ -45,7 +45,7 @@ static std::string c_http_request_err_3 =
     "User-Agent: gtest.proxy\r\n";
 
 template <typename DocType>
-void test_parse_request() {
+static void test_parse_request() {
     DocType doc(rapidhttp::Request);
     size_t bytes = doc.PartailParse(c_http_request);
     EXPECT_EQ(bytes, c_http_request.size());
@@ -131,7 +131,8 @@ void test_parse_request() {
         EXPECT_EQ(doc.GetField("Connection"), "Keep-Alive");
         EXPECT_EQ(doc.GetField("User-Agent"), "");
     }
-
+    // for stringref
+    doc.PartailParse(c_http_request);
     char buf[256] = {};
     bool b = doc.Serialize(buf, sizeof(buf));
     EXPECT_TRUE(b);
@@ -149,7 +150,7 @@ void test_parse_request() {
     EXPECT_EQ(c_http_request_2, buf);
 }
 
-void copyto_request() {
+static void copyto_request() {
     std::string s = c_http_request_2;
 
     rapidhttp::HttpDocumentRef doc(rapidhttp::Request);
@@ -191,6 +192,6 @@ void copyto_request() {
 
 TEST(parse, request) {
     test_parse_request<rapidhttp::HttpDocument>();
-    // test_parse_request<rapidhttp::HttpDocumentRef>();
-    // copyto_request();
+    test_parse_request<rapidhttp::HttpDocumentRef>();
+    copyto_request();
 }

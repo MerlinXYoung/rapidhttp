@@ -90,13 +90,26 @@ class TRequest {
         : major_(other.major_),
           minor_(other.major_),
           method_(other.method_),
-          uri_(other.uri_.c_str()),
+          uri_(other.uri_.data(), other.uri_.size()),
           header_fields_(),
-          body_(other.body_) {
+          body_(other.body_.data(), other.body_.size()) {
         for (const auto& h : other.header_fields_) {
-            header_fields_.emplace_back(
-                std::make_pair(string_t(h.first.c_str()), string_t(h.second.c_str())));
+            header_fields_.emplace_back(std::make_pair(string_t(h.first.data(), h.first.size()),
+                                                       string_t(h.second.data(), h.second.size())));
         }
+    }
+    template <class StringT1>
+    TRequest& operator=(const TRequest<StringT1>& other) {
+        major_ = other.major_;
+        minor_ = other.major_, method_ = other.method_;
+        uri_ = string_t(other.uri_.data(), other.uri_.size());
+        // header_fields_ = other.header_fields_;
+        for (const auto& h : other.header_fields_) {
+            header_fields_.emplace_back(std::make_pair(string_t(h.first.data(), h.first.size()),
+                                                       string_t(h.second.data(), h.second.size())));
+        }
+        body_ = string_t(other.body_.data(), other.body_.size());
+        return *this;
     }
 
     inline uint32_t major() const noexcept { return major_; }
@@ -171,10 +184,10 @@ template <typename StringT>
 inline bool TRequest<StringT>::Serialize(char* buf, size_t len) {
     size_t bytes = ByteSize();
     if (!bytes || len < bytes) return false;
-#define _WRITE_STRING(ss)                   \
-    do {                                    \
-        memcpy(buf, ss.c_str(), ss.size()); \
-        buf += ss.size();                   \
+#define _WRITE_STRING(ss)                  \
+    do {                                   \
+        memcpy(buf, ss.data(), ss.size()); \
+        buf += ss.size();                  \
     } while (0);
 
 #define _WRITE_C_STR(c_str, length) \

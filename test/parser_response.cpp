@@ -3,6 +3,9 @@
 #include <unistd.h>
 
 #include <iostream>
+
+#include "rapidhttp/stringref.h"
+
 using namespace std;
 using namespace rapidhttp;
 
@@ -46,7 +49,7 @@ static std::string c_http_response_err_3 =
     "User-Agent: gtest.proxy\r\n";
 
 template <typename String>
-void test_parse_response() {
+static void test_parse_response() {
     TResponseParser<String> parser;
     size_t bytes = parser.PartailParse(c_http_response);
     EXPECT_EQ(bytes, c_http_response.size());
@@ -139,6 +142,8 @@ void test_parse_response() {
         EXPECT_EQ(parser.GetField("Connection"), "Keep-Alive");
         EXPECT_EQ(parser.GetField("User-Agent"), "");
     }
+    // for stringref
+    parser.PartailParse(c_http_response);
 
     char buf[256] = {};
     auto response = parser.plunderResponse();
@@ -148,11 +153,11 @@ void test_parse_response() {
     EXPECT_EQ(bytes, c_http_response.size());
     EXPECT_EQ(c_http_response, buf);
 }
-#if 0
-void copyto_response() {
+#if 1
+static void copyto_response() {
     std::string s = c_http_response;
 
-    rapidhttp::HttpDocumentRef parser(rapidhttp::Response);
+    TResponseParser<std::string> parser;
     size_t bytes = parser.PartailParse(s);
     EXPECT_EQ(bytes, s.size());
     EXPECT_TRUE(!parser.ParseError());
@@ -170,28 +175,18 @@ void copyto_response() {
 
     _CHECK_DOC(parser);
 
-    rapidhttp::HttpDocumentRef doc2(rapidhttp::Response);
-    parser.CopyTo(doc2);
-    _CHECK_DOC(doc2);
+    auto response = parser.plunderResponse();
+    TResponse<StringRef> responseRef(response);
 
-    rapidhttp::HttpDocument doc3(rapidhttp::Response);
-    doc2.CopyTo(doc3);
-    _CHECK_DOC(doc3);
+    EXPECT_EQ(response.SerializeAsString(), responseRef.SerializeAsString());
 
-    rapidhttp::HttpDocument doc4(rapidhttp::Response);
-    doc2.CopyTo(doc4);
-    _CHECK_DOC(doc4);
-    doc3.CopyTo(doc4);
-    _CHECK_DOC(doc4);
-
-    s = "xx";
-    _CHECK_DOC(doc3);
-    _CHECK_DOC(doc4);
+    TResponse<std::string> tmp = responseRef;
+    EXPECT_EQ(tmp.SerializeAsString(), responseRef.SerializeAsString());
 }
 #endif
 
 TEST(parser, response) {
     test_parse_response<std::string>();
-    // test_parse_response<rapidhttp::HttpDocumentRef>();
-    // copyto_response();
+    test_parse_response<StringRef>();
+    copyto_response();
 }
