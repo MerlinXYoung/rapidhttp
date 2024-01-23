@@ -6,6 +6,9 @@
 #include <utility>
 #include <vector>
 
+#include "status.h"
+
+
 namespace rapidhttp {
 
 template <class StringT>
