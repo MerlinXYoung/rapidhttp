@@ -25,7 +25,7 @@ target("rapidjson")
     add_headerfiles("./include/**.h","./include/**.hpp", {prefixdir = "rapidhttp"})
     -- add_installfiles("./include/**.h", {prefixdir = "rapidhttp"})
     set_configdir("./include/rapidhttp/")
-    add_configfiles("./include/rapidhttp/xmake_config.h.in",{filename = "cmake_config.h"})
+    add_configfiles("./include/rapidhttp/cmake_config.h.in",{filename = "cmake_config.h"})
     on_config(function (target) 
         if not os.exists("./third_party/http-parser/http_parser.h") then 
             os.vrun("git submodule update --init --force")
