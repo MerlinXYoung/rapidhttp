@@ -472,7 +472,18 @@ inline typename TParser<StringT>::response_t TParser<StringT>::plunderResponse()
     return response_t(major_, minor_, response_status_code_, std::move(response_status_),
                       std::move(header_fields_), std::move(body_));
 }
-
+template <typename StringT>
+template <typename OStringT>
+TRequest<OStringT> TParser<StringT>::plunderRequest() {
+    return TRequest<OStringT>(major_, minor_, request_method_, std::move(request_uri_),
+                              std::move(header_fields_), std::move(body_));
+}
+template <typename StringT>
+template <typename OStringT>
+TResponse<OStringT> TParser<StringT>::plunderResponse() {
+    return TResponse<OStringT>(major_, minor_, response_status_code_, std::move(response_status_),
+                               std::move(header_fields_), std::move(body_));
+}
 /// --------------------------------------------------------
 
 typedef TParser<std::string> HttpDocument;

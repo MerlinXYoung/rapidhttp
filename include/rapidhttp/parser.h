@@ -41,6 +41,11 @@ class TParser {
     request_t plunderRequest();
     response_t plunderResponse();
 
+    template <typename OStringT>
+    TRequest<OStringT> plunderRequest();
+    template <typename OStringT>
+    TResponse<OStringT> plunderResponse();
+
     /// ------------------- parse/generate ---------------------
     /// 流式解析
     // @buf_ref: 外部传入的缓冲区首地址
@@ -188,6 +193,9 @@ struct TResponseParser : public TParser<StringT> {
     using base_type = TParser<StringT>;
     inline TResponseParser() : base_type(Response) {}
 };
+
+using RequestParser = TRequestParser<std::string>;
+using ResponseParser = TResponseParser<std::string>;
 
 }  // namespace rapidhttp
 
