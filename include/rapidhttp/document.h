@@ -255,7 +255,7 @@ class TDocument {
             if (h.first == key) return h.second;
         return empty_string;
     }
-#if 0
+#if 1
     inline this_type& SetField(const header_type& h) {
         auto it = std::find_if(
             header_fields_.begin(), header_fields_.end(),

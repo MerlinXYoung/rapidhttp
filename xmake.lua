@@ -19,16 +19,19 @@ option("WITH_PROFILE")
     set_default(false)
     set_showmenu(true)
     set_description("link benchmark with profiler")
-    add_defines("PROFILE=1")
-    add_cxflags("-pg")
-    
+    add_defines("PROFILE=1","_GNU_SOURCE=1")
+
+    add_cxflags("-MD", "-g")
+    add_cxflags("-MT", {force=true})
     
     -- add_links("tcmalloc_minimal","profiler", "unwind")
     -- target_link_libraries(benchmark -lprofiler -lunwind)
 option_end()
 
 add_requireconfs("gtest", {configs={main=true}})
-add_requires("gtest 1.12.0", "benchmark", "gperftools", "libunwind")
+add_requireconfs("gperftools", {configs={unwind=true}})
+add_requires("gtest 1.12.0", "benchmark", "gperftools")
+-- , "libunwind")
 
 add_includedirs("./include")
 
@@ -76,15 +79,11 @@ function scan_targets(prefix)
             set_default(false)
             add_files(source)
             add_deps("rapidjson")
-            add_packages("benchmark")
-            add_packages("gperftools")
-            add_packages("libunwind")
-            add_options("WITH_PROFILE")
         target_end()
     end
 end
 
-scan_targets("benchmark")
+-- scan_targets("benchmark")
 scan_targets("tutorial")
 
 target("unitest")
@@ -95,4 +94,31 @@ target("unitest")
     add_packages("gtest")
 
     add_tests("default")
+-- print("WITH_PROFILE:",has_config("WITH_PROFILE"))
+target("benchmark")
+    set_kind("binary")
+    set_default(false)
+    add_files("benchmark/*.cpp")
+    add_deps("rapidjson")
+    add_options("WITH_PROFILE")
+    
+    -- add_cxflags("-g")
+    if has_config("WITH_PROFILE") then
+        add_packages("gperftools", {links={"profiler","unwind"}})
+        -- add_packages("libunwind")
+        
+    end
+    add_packages("benchmark",{links={"benchmark", "tcmalloc_minimal", "pthread"}}) 
+
+    before_link(function (target)
+         print("ldflags:",target:get("ldflags"))
+         print("cxflags:",target:get("cxflags"))
+         print("taraget:", target)
+        
+    end)
+    on_link(function (target) 
+        
+    end)
+    
+target_end()
     

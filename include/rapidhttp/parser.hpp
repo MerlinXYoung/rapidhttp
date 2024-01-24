@@ -1,10 +1,10 @@
 #pragma once
-#include "util.h"
 #include <stdio.h>
 
 #include <algorithm>
 
 #include "parser.h"
+#include "util.h"
 
 namespace rapidhttp {
 
@@ -101,8 +101,10 @@ inline int TParser<StringT>::OnHeadersComplete(http_parser *parser) {
     doc_.SetMajor(parser->http_major);
     doc_.SetMinor(parser->http_minor);
     if (kv_state_ == 1) {
-        doc_.SetField(std::move(callback_header_key_cache_),
-                      std::move(callback_header_value_cache_));
+        // doc_.SetField(std::move(callback_header_key_cache_),
+        //               std::move(callback_header_value_cache_));
+        doc_.header_fields_.emplace_back(std::move(callback_header_key_cache_),
+                                         std::move(callback_header_value_cache_));
         kv_state_ = 0;
     }
     return 0;
@@ -125,8 +127,10 @@ inline int TParser<StringT>::OnStatus(http_parser *parser, const char *at, size_
 template <typename StringT>
 inline int TParser<StringT>::OnHeaderField(http_parser *parser, const char *at, size_t length) {
     if (kv_state_ == 1) {
-        doc_.SetField(std::move(callback_header_key_cache_),
-                      std::move(callback_header_value_cache_));
+        // doc_.SetField(std::move(callback_header_key_cache_),
+        //               std::move(callback_header_value_cache_));
+        doc_.header_fields_.emplace_back(std::move(callback_header_key_cache_),
+                                         std::move(callback_header_value_cache_));
         kv_state_ = 0;
     }
 
