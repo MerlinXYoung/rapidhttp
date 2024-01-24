@@ -1,11 +1,5 @@
 #pragma once
 
-#include <rapidhttp/constants.h>
-#include <rapidhttp/error_code.h>
-#include <rapidhttp/layer.h>
-#include <rapidhttp/request.h>
-#include <rapidhttp/response.h>
-#include <rapidhttp/stringref.h>
 #include <stdint.h>
 
 #include <map>
@@ -13,38 +7,34 @@
 #include <vector>
 
 #include "cmake_config.h"
+#include "constants.h"
+#include "error_code.h"
+#include "layer.hpp"
+#include "request.h"
+#include "response.h"
+#include "stringref.h"
 
 namespace rapidhttp {
 
-enum ParserType {
-    Request,
-    Response,
-};
+// enum ParserType {
+//     Request,
+//     Response,
+// };
 
 // Http Header document class.
 template <typename StringT>
 class TParser {
   public:
-    typedef StringT string_t;
+    using string_t = StringT;
+    using document_type = TDocument<string_t>;
     using request_t = TRequest<string_t>;
     using response_t = TResponse<string_t>;
 
-    explicit TParser(ParserType type);
+    explicit TParser(http_parser_type type);
     TParser(TParser const &other) = delete;
     TParser(TParser &&other) = delete;
     TParser &operator=(TParser const &other) = delete;
     TParser &operator=(TParser &&other) = delete;
-
-    template <typename OStringT>
-    void CopyTo(TParser<OStringT> &clone) const;
-
-    request_t plunderRequest();
-    response_t plunderResponse();
-
-    template <typename OStringT>
-    TRequest<OStringT> plunderRequest();
-    template <typename OStringT>
-    TResponse<OStringT> plunderResponse();
 
     /// ------------------- parse/generate ---------------------
     /// 流式解析
@@ -69,56 +59,19 @@ class TParser {
     /// 返回解析错误码
     inline std::error_code ParseError();
 
-    // /// 是否全部初始化完成, Serialize之前会做这个校验
-    // inline bool IsInitialized() const;
+    inline const document_type &GetDoc() const noexcept { return doc_; }
+    inline document_type &&StealDoc() { return std::move(doc_); }
 
-    // /// Serialize后的数据长度
-    // inline size_t ByteSize() const;
+    request_t &&StealRequest();
+    response_t &&StealResponse();
 
-    // /// 序列化
-    // inline bool Serialize(char *buf, size_t len);
-    // inline std::string SerializeAsString();
-    /// --------------------------------------------------------
+    template <typename OStringT>
+    TRequest<OStringT> &&StealRequest();
+    template <typename OStringT>
+    TResponse<OStringT> &&StealResponse();
 
-    /// ------------------- fields get/set ---------------------
-
-    inline http_method GetMethod();
-
-    inline void SetMethod(http_method m);
-
-    inline const char *GetMethodCStr();
-    //   inline string_t const &GetMethod();
-    inline void SetMethod(const char *m);
-    inline void SetMethod(std::string const &m);
-
-    inline string_t const &GetUri();
-    inline void SetUri(const char *m);
-    inline void SetUri(std::string const &m);
-
-    inline string_t const &GetStatus();
-    inline void SetStatus(const char *m);
-    inline void SetStatus(std::string const &m);
-
-    inline int GetStatusCode();
-    inline void SetStatusCode(int code);
-
-    inline int GetMajor();
-    inline void SetMajor(int v);
-
-    inline int GetMinor();
-    inline void SetMinor(int v);
-
-    inline string_t const &GetField(std::string const &k);
-    inline void SetField(std::string const &k, const char *m);
-    inline void SetField(std::string const &k, std::string const &m);
-
-    inline string_t const &GetBody();
-    inline void SetBody(const char *m);
-    inline void SetBody(std::string const &m);
-    /// --------------------------------------------------------
-
-    inline bool IsRequest() const { return type_ == Request; }
-    inline bool IsResponse() const { return type_ == Response; }
+    inline bool IsRequest() const noexcept { return doc_.IsRequest(); }
+    inline bool IsResponse() const noexcept { return doc_.IsResponse(); }
 
   private:
     inline bool CheckMethod() const;
@@ -149,9 +102,10 @@ class TParser {
 #endif
 
   private:
-    ParserType type_;  // 类型
+    document_type doc_;
+    // ParserType type_;  // 类型
 
-    bool parse_done_ = false;
+    bool parse_done_{false};
     std::error_code ec_;  // 解析错状态
 
 #if USE_PICO
@@ -160,24 +114,9 @@ class TParser {
     struct http_parser_settings settings_;
 #endif
 
-    int kv_state_ = 0;
+    int kv_state_{0};
     string_t callback_header_key_cache_;
     string_t callback_header_value_cache_;
-
-    // 默认版本号: HTTP/1.1
-    uint32_t major_ = 1;
-    uint32_t minor_ = 1;
-
-    //   string_t request_method_;
-    http_method request_method_;  // {http_method::HTTP_GET}
-    string_t request_uri_;
-
-    uint32_t response_status_code_ = 0;
-    string_t response_status_;
-
-    std::vector<std::pair<string_t, string_t>> header_fields_;
-
-    string_t body_;
 
     template <typename T>
     friend class TParser;
@@ -186,12 +125,12 @@ class TParser {
 template <class StringT>
 struct TRequestParser : public TParser<StringT> {
     using base_type = TParser<StringT>;
-    inline TRequestParser() : base_type(Request) {}
+    inline TRequestParser() : base_type(HTTP_REQUEST) {}
 };
 template <class StringT>
 struct TResponseParser : public TParser<StringT> {
     using base_type = TParser<StringT>;
-    inline TResponseParser() : base_type(Response) {}
+    inline TResponseParser() : base_type(HTTP_RESPONSE) {}
 };
 
 using RequestParser = TRequestParser<std::string>;
