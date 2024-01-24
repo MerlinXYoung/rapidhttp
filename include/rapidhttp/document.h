@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <cstdint>
 #include <string>
 #include <utility>
@@ -254,14 +255,28 @@ class TDocument {
             if (h.first == key) return h.second;
         return empty_string;
     }
-
+#if 0
     inline this_type& SetField(const header_type& h) {
-        header_fields_.push_back(h);
+        auto it = std::find_if(
+            header_fields_.begin(), header_fields_.end(),
+            [&](std::pair<string_t, string_t> const& kv) { return kv.first == h.first; });
+        if (header_fields_.end() == it)
+            header_fields_.push_back(h);
+        else
+            it->second = h.second;
+
         return *this;
     }
 
     inline this_type& SetField(header_type&& h) {
-        header_fields_.emplace_back(h);
+        auto it = std::find_if(
+            header_fields_.begin(), header_fields_.end(),
+            [&](std::pair<string_t, string_t> const& kv) { return kv.first == h.first; });
+        if (header_fields_.end() == it)
+            header_fields_.emplace_back(h);
+        else
+            it->second = std::move(h.second);
+
         return *this;
     }
 
@@ -270,7 +285,14 @@ class TDocument {
     }
 
     inline this_type& SetField(string_t&& key, string_t&& value) {
-        return SetField(std::make_pair(std::move(key), std::move(value)));
+        auto it =
+            std::find_if(header_fields_.begin(), header_fields_.end(),
+                         [&](std::pair<string_t, string_t> const& kv) { return kv.first == key; });
+        if (header_fields_.end() == it)
+            header_fields_.emplace_back(key, value);
+        else
+            it->second = value;
+        return *this;
     }
 
     inline this_type& SetField(const char* key, const char* value) {
@@ -281,6 +303,22 @@ class TDocument {
     inline this_type& SetField(const OStringT1& key, const OStringT2& value) {
         return SetField(key.c_str(), value.c_str());
     }
+#else
+
+    inline void SetField(std::string const& k, const char* m) {
+        auto it =
+            std::find_if(header_fields_.begin(), header_fields_.end(),
+                         [&](std::pair<string_t, string_t> const& kv) { return kv.first == k; });
+        if (header_fields_.end() == it)
+            header_fields_.emplace_back(k, m);
+        else
+            it->second = m;
+    }
+
+    inline void SetField(std::string const& k, std::string const& m) {
+        return SetField(k, m.c_str());
+    }
+#endif
 
   protected:
     /// --------------------------------------------------------

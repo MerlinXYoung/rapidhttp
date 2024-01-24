@@ -15,8 +15,20 @@ option("with_pico")
     set_configvar("USE_PICO", 1)
 option_end()
 
+option("WITH_PROFILE")
+    set_default(false)
+    set_showmenu(true)
+    set_description("link benchmark with profiler")
+    add_defines("PROFILE=1")
+    add_cxflags("-pg")
+    
+    
+    -- add_links("tcmalloc_minimal","profiler", "unwind")
+    -- target_link_libraries(benchmark -lprofiler -lunwind)
+option_end()
+
 add_requireconfs("gtest", {configs={main=true}})
-add_requires("gtest 1.12.0", "benchmark")
+add_requires("gtest 1.12.0", "benchmark", "gperftools")
 
 add_includedirs("./include")
 
@@ -65,6 +77,8 @@ function scan_targets(prefix)
             add_files(source)
             add_deps("rapidjson")
             add_packages("benchmark")
+            add_packages("gperftools")
+            add_options("WITH_PROFILE")
         target_end()
     end
 end
