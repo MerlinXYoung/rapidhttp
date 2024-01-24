@@ -5,7 +5,7 @@ set_config("plat", os.host())
 set_languages("c++11")
 set_warnings("all","error")
 
-add_rules("mode.debug", "mode.release")
+add_rules("mode.debug", "mode.release", "mode.releasedbg")
 
 set_configvar("USE_PICO", 0)
 option("with_pico")
@@ -23,6 +23,7 @@ option("WITH_PROFILE")
 
     add_cxflags("-MD", "-g")
     add_cxflags("-MT", {force=true})
+    
     
     -- add_links("tcmalloc_minimal","profiler", "unwind")
     -- target_link_libraries(benchmark -lprofiler -lunwind)
@@ -101,6 +102,7 @@ target("benchmark")
     add_files("benchmark/*.cpp")
     add_deps("rapidjson")
     add_options("WITH_PROFILE")
+    set_symbols("debug")
     
     -- add_cxflags("-g")
     if has_config("WITH_PROFILE") then
@@ -110,15 +112,16 @@ target("benchmark")
     end
     add_packages("benchmark",{links={"benchmark", "tcmalloc_minimal", "pthread"}}) 
 
-    before_link(function (target)
-         print("ldflags:",target:get("ldflags"))
-         print("cxflags:",target:get("cxflags"))
-         print("taraget:", target)
+    -- before_link(function (target)
+    --      print("ldflags:",target:get("ldflags"))
+    --      print("cxflags:",target:get("cxflags"))
+    --      print("links:", target:get("links"))
+    --     --  print("taraget:", target)
         
-    end)
-    on_link(function (target) 
+    -- end)
+    -- on_link(function (target) 
         
-    end)
+    -- end)
     
 target_end()
     
