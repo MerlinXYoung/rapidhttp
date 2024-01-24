@@ -28,7 +28,7 @@ option("WITH_PROFILE")
 option_end()
 
 add_requireconfs("gtest", {configs={main=true}})
-add_requires("gtest 1.12.0", "benchmark", "gperftools")
+add_requires("gtest 1.12.0", "benchmark", "gperftools", "libunwind")
 
 add_includedirs("./include")
 
@@ -78,6 +78,7 @@ function scan_targets(prefix)
             add_deps("rapidjson")
             add_packages("benchmark")
             add_packages("gperftools")
+            add_packages("libunwind")
             add_options("WITH_PROFILE")
         target_end()
     end
