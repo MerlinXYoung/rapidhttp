@@ -152,20 +152,20 @@ class TDocument {
     }
 
     inline string_t const& GetUri() const noexcept { return uri_or_status_; }
-    inline this_type& SetUrl(const char* uri) {
+    inline this_type& SetUri(const char* uri) {
         uri_or_status_ = uri;
         return *this;
     }
     template <class OStringT>
-    inline this_type& SetUrl(const OStringT& uri) {
+    inline this_type& SetUri(const OStringT& uri) {
         uri_or_status_ = uri;
         return *this;
     }
-    inline this_type& SetUrl(const string_t& uri) {
+    inline this_type& SetUri(const string_t& uri) {
         uri_or_status_ = uri;
         return *this;
     }
-    inline this_type& SetUrl(string_t&& uri) {
+    inline this_type& SetUri(string_t&& uri) {
         uri_or_status_ = uri;
         return *this;
     }

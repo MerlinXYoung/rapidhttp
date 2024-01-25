@@ -106,22 +106,11 @@ target("benchmark")
     
     -- add_cxflags("-g")
     if has_config("WITH_PROFILE") then
-        add_packages("gperftools", {links={"profiler","unwind"}})
+        add_packages("gperftools", {links={"profiler","unwind","tcmalloc_minimal"}})
         -- add_packages("libunwind")
         
     end
-    add_packages("benchmark",{links={"benchmark", "tcmalloc_minimal", "pthread"}}) 
-
-    -- before_link(function (target)
-    --      print("ldflags:",target:get("ldflags"))
-    --      print("cxflags:",target:get("cxflags"))
-    --      print("links:", target:get("links"))
-    --     --  print("taraget:", target)
-        
-    -- end)
-    -- on_link(function (target) 
-        
-    -- end)
+    add_packages("benchmark",{links={"benchmark",  "pthread"}}) 
     
 target_end()
     

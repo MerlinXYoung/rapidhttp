@@ -13,6 +13,7 @@ inline http_method get_http_method(const char* s) {
     }
     return http_method(0);
 }
+<<<<<<< HEAD
 
 inline const char* http_status_str(int s) noexcept {
     switch (s) {
@@ -154,3 +155,5 @@ inline const char* http_status_str(int s) noexcept {
             return "";
     }
 }
+=======
+>>>>>>> master
