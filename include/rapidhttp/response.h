@@ -3,7 +3,7 @@
 #include <utility>
 #include <vector>
 
-#include "document.h"
+#include "doc.h"
 #include "status.h"
 #include "util.h"
 

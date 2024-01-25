@@ -5,7 +5,7 @@
 #include <utility>
 #include <vector>
 
-#include "document.h"
+#include "doc.h"
 namespace rapidhttp {
 
 struct Method {

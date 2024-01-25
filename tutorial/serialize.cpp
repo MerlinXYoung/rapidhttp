@@ -1,10 +1,10 @@
-#include <iostream>
+#include <rapidhttp/doc.h>
 #include <unistd.h>
-#include <rapidhttp/document.h>
+
+#include <iostream>
 using namespace std;
 
-void serialize()
-{
+void serialize() {
     // 1.定义一个Document对象
     rapidhttp::Document doc(rapidhttp::HTTP_RESPONSE);
 
@@ -53,8 +53,7 @@ void serialize()
     cout << "serialize output:\n" << output << endl;
 }
 
-int main()
-{
+int main() {
     serialize();
     return 0;
 }
