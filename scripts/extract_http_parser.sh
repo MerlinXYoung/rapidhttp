@@ -5,6 +5,8 @@ dest=$1/include/rapidhttp/layer.hpp
 echo "#pragma once" > $dest
 cat $1/third_party/http-parser/http_parser.h >> $dest
 sed -i 's/extern\ "C"/namespace rapidhttp/g' $dest
+# sed -i 's/extern\ "C"\ {//g' $dest
+# sed -i 's/extern\ "C"\ {//g' $dest
 
 last_include=`grep "^\#include" $1/third_party/http-parser/http_parser.c -n | tail -1 | cut -d: -f1`
 tail_start=`expr $last_include + 1`
@@ -12,6 +14,10 @@ head -$last_include $1/third_party/http-parser/http_parser.c >> $dest
 
 echo "namespace rapidhttp {" >> $dest
 tail -n +$tail_start $1/third_party/http-parser/http_parser.c >> $dest
+echo "} //namespace rapidhttp" >> $dest
+
+echo "namespace rapidhttp {" >> $dest
+cat $1/scripts/helper.h >> $dest
 echo "} //namespace rapidhttp" >> $dest
 
 # add inline key-word

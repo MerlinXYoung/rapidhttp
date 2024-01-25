@@ -56,14 +56,14 @@ static void test_parse_request() {
     EXPECT_EQ(bytes, c_http_request.size());
     EXPECT_TRUE(!parser.ParseError());
 
-    EXPECT_STREQ(parser.GetMethodCStr(), "GET");
-    EXPECT_EQ(parser.GetUri(), "/uri/abc");
-    EXPECT_EQ(parser.GetMajor(), 1);
-    EXPECT_EQ(parser.GetMinor(), 1);
-    EXPECT_EQ(parser.GetField("Accept"), "XAccept");
-    EXPECT_EQ(parser.GetField("Host"), "domain.com");
-    EXPECT_EQ(parser.GetField("Connection"), "Keep-Alive");
-    EXPECT_EQ(parser.GetField("User-Agent"), "");
+    EXPECT_STREQ(parser.GetDoc().GetMethodCStr(), "GET");
+    EXPECT_EQ(parser.GetDoc().GetUri(), "/uri/abc");
+    EXPECT_EQ(parser.GetDoc().GetMajor(), 1);
+    EXPECT_EQ(parser.GetDoc().GetMinor(), 1);
+    EXPECT_EQ(parser.GetDoc().GetField("Accept"), "XAccept");
+    EXPECT_EQ(parser.GetDoc().GetField("Host"), "domain.com");
+    EXPECT_EQ(parser.GetDoc().GetField("Connection"), "Keep-Alive");
+    EXPECT_EQ(parser.GetDoc().GetField("User-Agent"), "");
 
     for (int i = 0; i < 10; ++i) {
         size_t bytes = parser.PartailParse(c_http_request.c_str(), c_http_request.size());
@@ -71,27 +71,27 @@ static void test_parse_request() {
         EXPECT_TRUE(!parser.ParseError());
     }
 
-    EXPECT_STREQ(parser.GetMethodCStr(), "GET");
-    EXPECT_EQ(parser.GetUri(), "/uri/abc");
-    EXPECT_EQ(parser.GetMajor(), 1);
-    EXPECT_EQ(parser.GetMinor(), 1);
-    EXPECT_EQ(parser.GetField("Accept"), "XAccept");
-    EXPECT_EQ(parser.GetField("Host"), "domain.com");
-    EXPECT_EQ(parser.GetField("Connection"), "Keep-Alive");
-    EXPECT_EQ(parser.GetField("User-Agent"), "");
+    EXPECT_STREQ(parser.GetDoc().GetMethodCStr(), "GET");
+    EXPECT_EQ(parser.GetDoc().GetUri(), "/uri/abc");
+    EXPECT_EQ(parser.GetDoc().GetMajor(), 1);
+    EXPECT_EQ(parser.GetDoc().GetMinor(), 1);
+    EXPECT_EQ(parser.GetDoc().GetField("Accept"), "XAccept");
+    EXPECT_EQ(parser.GetDoc().GetField("Host"), "domain.com");
+    EXPECT_EQ(parser.GetDoc().GetField("Connection"), "Keep-Alive");
+    EXPECT_EQ(parser.GetDoc().GetField("User-Agent"), "");
 
     bytes = parser.PartailParse(c_http_request_2);
     EXPECT_EQ(bytes, c_http_request_2.size());
     EXPECT_TRUE(!parser.ParseError());
-    EXPECT_STREQ(parser.GetMethodCStr(), "POST");
-    EXPECT_EQ(parser.GetUri(), "/uri/abc");
-    EXPECT_EQ(parser.GetMajor(), 1);
-    EXPECT_EQ(parser.GetMinor(), 1);
-    EXPECT_EQ(parser.GetField("Accept"), "XAccept");
-    EXPECT_EQ(parser.GetField("Host"), "domain.com");
-    EXPECT_EQ(parser.GetField("Connection"), "");
-    EXPECT_EQ(parser.GetField("User-Agent"), "gtest.proxy");
-    EXPECT_EQ(parser.GetBody(), "abc");
+    EXPECT_STREQ(parser.GetDoc().GetMethodCStr(), "POST");
+    EXPECT_EQ(parser.GetDoc().GetUri(), "/uri/abc");
+    EXPECT_EQ(parser.GetDoc().GetMajor(), 1);
+    EXPECT_EQ(parser.GetDoc().GetMinor(), 1);
+    EXPECT_EQ(parser.GetDoc().GetField("Accept"), "XAccept");
+    EXPECT_EQ(parser.GetDoc().GetField("Host"), "domain.com");
+    EXPECT_EQ(parser.GetDoc().GetField("Connection"), "");
+    EXPECT_EQ(parser.GetDoc().GetField("User-Agent"), "gtest.proxy");
+    EXPECT_EQ(parser.GetDoc().GetBody(), "abc");
 
     bytes = parser.PartailParse(c_http_request_err_1);
     EXPECT_TRUE(parser.ParseError());
@@ -99,8 +99,8 @@ static void test_parse_request() {
     bytes = parser.PartailParse(c_http_request_http_0_9);
     EXPECT_FALSE(parser.ParseError());
     EXPECT_TRUE(parser.ParseDone());
-    EXPECT_EQ(parser.GetMajor(), 0);
-    EXPECT_EQ(parser.GetMinor(), 9);
+    EXPECT_EQ(parser.GetDoc().GetMajor(), 0);
+    EXPECT_EQ(parser.GetDoc().GetMinor(), 9);
 
     // partail parse logic
     cout << "parse partail" << endl;
@@ -127,20 +127,20 @@ static void test_parse_request() {
         EXPECT_TRUE(!parser.ParseError());
         EXPECT_TRUE(parser.ParseDone());
 
-        EXPECT_STREQ(parser.GetMethodCStr(), "GET");
-        EXPECT_EQ(parser.GetUri(), "/uri/abc");
-        EXPECT_EQ(parser.GetMajor(), 1);
-        EXPECT_EQ(parser.GetMinor(), 1);
-        EXPECT_EQ(parser.GetField("Accept"), "XAccept");
-        EXPECT_EQ(parser.GetField("Host"), "domain.com");
-        EXPECT_EQ(parser.GetField("Connection"), "Keep-Alive");
-        EXPECT_EQ(parser.GetField("User-Agent"), "");
+        EXPECT_STREQ(parser.GetDoc().GetMethodCStr(), "GET");
+        EXPECT_EQ(parser.GetDoc().GetUri(), "/uri/abc");
+        EXPECT_EQ(parser.GetDoc().GetMajor(), 1);
+        EXPECT_EQ(parser.GetDoc().GetMinor(), 1);
+        EXPECT_EQ(parser.GetDoc().GetField("Accept"), "XAccept");
+        EXPECT_EQ(parser.GetDoc().GetField("Host"), "domain.com");
+        EXPECT_EQ(parser.GetDoc().GetField("Connection"), "Keep-Alive");
+        EXPECT_EQ(parser.GetDoc().GetField("User-Agent"), "");
     }
     // for stringref
     parser.PartailParse(c_http_request);
 
     char buf[256] = {};
-    request = parser.plunderRequest();
+    request = parser.StealRequest();
     bool b = request.Serialize(buf, sizeof(buf));
     EXPECT_TRUE(b);
     bytes = request.ByteSize();
@@ -150,7 +150,7 @@ static void test_parse_request() {
     bytes = parser.PartailParse(c_http_request_2);
     EXPECT_EQ(bytes, c_http_request_2.size());
     EXPECT_TRUE(parser.ParseDone());
-    request = parser.plunderRequest();
+    request = parser.StealRequest();
     b = request.Serialize(buf, sizeof(buf));
     EXPECT_TRUE(b);
     bytes = request.ByteSize();
@@ -166,20 +166,20 @@ static void copyto_request() {
     EXPECT_EQ(bytes, s.size());
     EXPECT_TRUE(!parser.ParseError());
 
-#define _CHECK_DOC(parser)                                   \
-    EXPECT_STREQ(parser.GetMethodCStr(), "POST");            \
-    EXPECT_EQ(parser.GetUri(), "/uri/abc");                  \
-    EXPECT_EQ(parser.GetMajor(), 1);                         \
-    EXPECT_EQ(parser.GetMinor(), 1);                         \
-    EXPECT_EQ(parser.GetField("Accept"), "XAccept");         \
-    EXPECT_EQ(parser.GetField("Host"), "domain.com");        \
-    EXPECT_EQ(parser.GetField("Connection"), "");            \
-    EXPECT_EQ(parser.GetField("User-Agent"), "gtest.proxy"); \
-    EXPECT_EQ(parser.GetBody(), "abc")
+#define _CHECK_DOC(parser)                                            \
+    EXPECT_STREQ(parser.GetDoc().GetMethodCStr(), "POST");            \
+    EXPECT_EQ(parser.GetDoc().GetUri(), "/uri/abc");                  \
+    EXPECT_EQ(parser.GetDoc().GetMajor(), 1);                         \
+    EXPECT_EQ(parser.GetDoc().GetMinor(), 1);                         \
+    EXPECT_EQ(parser.GetDoc().GetField("Accept"), "XAccept");         \
+    EXPECT_EQ(parser.GetDoc().GetField("Host"), "domain.com");        \
+    EXPECT_EQ(parser.GetDoc().GetField("Connection"), "");            \
+    EXPECT_EQ(parser.GetDoc().GetField("User-Agent"), "gtest.proxy"); \
+    EXPECT_EQ(parser.GetDoc().GetBody(), "abc")
 
     _CHECK_DOC(parser);
 
-    auto request = parser.plunderRequest();
+    auto request = parser.StealRequest();
 
     TRequest<StringRef> requestRef(request);
 

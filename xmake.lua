@@ -5,7 +5,7 @@ set_config("plat", os.host())
 set_languages("c++11")
 set_warnings("all","error")
 
-add_rules("mode.debug", "mode.release")
+add_rules("mode.debug", "mode.release", "mode.releasedbg")
 
 set_configvar("USE_PICO", 0)
 option("with_pico")
@@ -15,8 +15,24 @@ option("with_pico")
     set_configvar("USE_PICO", 1)
 option_end()
 
+option("WITH_PROFILE")
+    set_default(false)
+    set_showmenu(true)
+    set_description("link benchmark with profiler")
+    add_defines("PROFILE=1","_GNU_SOURCE=1")
+
+    add_cxflags("-MD", "-g")
+    add_cxflags("-MT", {force=true})
+    
+    
+    -- add_links("tcmalloc_minimal","profiler", "unwind")
+    -- target_link_libraries(benchmark -lprofiler -lunwind)
+option_end()
+
 add_requireconfs("gtest", {configs={main=true}})
-add_requires("gtest 1.12.0", "benchmark")
+add_requireconfs("gperftools", {configs={unwind=true}})
+add_requires("gtest 1.12.0", "benchmark", "gperftools")
+-- , "libunwind")
 
 add_includedirs("./include")
 
@@ -64,12 +80,11 @@ function scan_targets(prefix)
             set_default(false)
             add_files(source)
             add_deps("rapidjson")
-            add_packages("benchmark")
         target_end()
     end
 end
 
-scan_targets("benchmark")
+-- scan_targets("benchmark")
 scan_targets("tutorial")
 
 target("unitest")
@@ -80,4 +95,22 @@ target("unitest")
     add_packages("gtest")
 
     add_tests("default")
+-- print("WITH_PROFILE:",has_config("WITH_PROFILE"))
+target("benchmark")
+    set_kind("binary")
+    set_default(false)
+    add_files("benchmark/*.cpp")
+    add_deps("rapidjson")
+    add_options("WITH_PROFILE")
+    set_symbols("debug")
+    
+    -- add_cxflags("-g")
+    if has_config("WITH_PROFILE") then
+        add_packages("gperftools", {links={"profiler","unwind"}})
+        -- add_packages("libunwind")
+        
+    end
+    add_packages("benchmark",{links={"benchmark", "tcmalloc_minimal", "pthread"}}) 
+    
+target_end()
     

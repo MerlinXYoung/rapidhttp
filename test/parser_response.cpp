@@ -56,15 +56,15 @@ static void test_parse_response() {
     EXPECT_TRUE(!parser.ParseError());
     EXPECT_TRUE(parser.ParseDone());
 
-    EXPECT_EQ(parser.GetStatus(), "OK");
-    EXPECT_EQ(parser.GetStatusCode(), 200);
-    EXPECT_EQ(parser.GetMajor(), 1);
-    EXPECT_EQ(parser.GetMinor(), 1);
-    EXPECT_EQ(parser.GetField("Accept"), "XAccept");
-    EXPECT_EQ(parser.GetField("Host"), "domain.com");
-    EXPECT_EQ(parser.GetField("Connection"), "Keep-Alive");
-    EXPECT_EQ(parser.GetField("User-Agent"), "");
-    EXPECT_EQ(parser.GetBody(), "xyz");
+    EXPECT_EQ(parser.GetDoc().GetStatus(), "OK");
+    EXPECT_EQ(parser.GetDoc().GetStatusCode(), 200);
+    EXPECT_EQ(parser.GetDoc().GetMajor(), 1);
+    EXPECT_EQ(parser.GetDoc().GetMinor(), 1);
+    EXPECT_EQ(parser.GetDoc().GetField("Accept"), "XAccept");
+    EXPECT_EQ(parser.GetDoc().GetField("Host"), "domain.com");
+    EXPECT_EQ(parser.GetDoc().GetField("Connection"), "Keep-Alive");
+    EXPECT_EQ(parser.GetDoc().GetField("User-Agent"), "");
+    EXPECT_EQ(parser.GetDoc().GetBody(), "xyz");
 
     for (int i = 0; i < 10; ++i) {
         size_t bytes = parser.PartailParse(c_http_response.c_str(), c_http_response.size());
@@ -73,14 +73,14 @@ static void test_parse_response() {
         EXPECT_TRUE(parser.ParseDone());
     }
 
-    EXPECT_EQ(parser.GetStatus(), "OK");
-    EXPECT_EQ(parser.GetStatusCode(), 200);
-    EXPECT_EQ(parser.GetMajor(), 1);
-    EXPECT_EQ(parser.GetMinor(), 1);
-    EXPECT_EQ(parser.GetField("Accept"), "XAccept");
-    EXPECT_EQ(parser.GetField("Host"), "domain.com");
-    EXPECT_EQ(parser.GetField("Connection"), "Keep-Alive");
-    EXPECT_EQ(parser.GetField("User-Agent"), "");
+    EXPECT_EQ(parser.GetDoc().GetStatus(), "OK");
+    EXPECT_EQ(parser.GetDoc().GetStatusCode(), 200);
+    EXPECT_EQ(parser.GetDoc().GetMajor(), 1);
+    EXPECT_EQ(parser.GetDoc().GetMinor(), 1);
+    EXPECT_EQ(parser.GetDoc().GetField("Accept"), "XAccept");
+    EXPECT_EQ(parser.GetDoc().GetField("Host"), "domain.com");
+    EXPECT_EQ(parser.GetDoc().GetField("Connection"), "Keep-Alive");
+    EXPECT_EQ(parser.GetDoc().GetField("User-Agent"), "");
 
     bytes = parser.PartailParse(c_http_response_2);
     EXPECT_EQ(bytes, c_http_response_2.size());
@@ -90,14 +90,14 @@ static void test_parse_response() {
     EXPECT_TRUE(!parser.ParseError());
     EXPECT_TRUE(parser.ParseDone());
 
-    EXPECT_EQ(parser.GetStatus(), "Not Found");
-    EXPECT_EQ(parser.GetStatusCode(), 404);
-    EXPECT_EQ(parser.GetMajor(), 1);
-    EXPECT_EQ(parser.GetMinor(), 1);
-    EXPECT_EQ(parser.GetField("Accept"), "XAccept");
-    EXPECT_EQ(parser.GetField("Host"), "domain.com");
-    EXPECT_EQ(parser.GetField("Connection"), "");
-    EXPECT_EQ(parser.GetField("User-Agent"), "gtest.proxy");
+    EXPECT_EQ(parser.GetDoc().GetStatus(), "Not Found");
+    EXPECT_EQ(parser.GetDoc().GetStatusCode(), 404);
+    EXPECT_EQ(parser.GetDoc().GetMajor(), 1);
+    EXPECT_EQ(parser.GetDoc().GetMinor(), 1);
+    EXPECT_EQ(parser.GetDoc().GetField("Accept"), "XAccept");
+    EXPECT_EQ(parser.GetDoc().GetField("Host"), "domain.com");
+    EXPECT_EQ(parser.GetDoc().GetField("Connection"), "");
+    EXPECT_EQ(parser.GetDoc().GetField("User-Agent"), "gtest.proxy");
 
     bytes = parser.PartailParse(c_http_response_err_1);
     EXPECT_TRUE(parser.ParseError());
@@ -133,20 +133,20 @@ static void test_parse_response() {
         EXPECT_TRUE(!parser.ParseError());
         EXPECT_TRUE(parser.ParseDone());
 
-        EXPECT_EQ(parser.GetStatus(), "OK");
-        EXPECT_EQ(parser.GetStatusCode(), 200);
-        EXPECT_EQ(parser.GetMajor(), 1);
-        EXPECT_EQ(parser.GetMinor(), 1);
-        EXPECT_EQ(parser.GetField("Accept"), "XAccept");
-        EXPECT_EQ(parser.GetField("Host"), "domain.com");
-        EXPECT_EQ(parser.GetField("Connection"), "Keep-Alive");
-        EXPECT_EQ(parser.GetField("User-Agent"), "");
+        EXPECT_EQ(parser.GetDoc().GetStatus(), "OK");
+        EXPECT_EQ(parser.GetDoc().GetStatusCode(), 200);
+        EXPECT_EQ(parser.GetDoc().GetMajor(), 1);
+        EXPECT_EQ(parser.GetDoc().GetMinor(), 1);
+        EXPECT_EQ(parser.GetDoc().GetField("Accept"), "XAccept");
+        EXPECT_EQ(parser.GetDoc().GetField("Host"), "domain.com");
+        EXPECT_EQ(parser.GetDoc().GetField("Connection"), "Keep-Alive");
+        EXPECT_EQ(parser.GetDoc().GetField("User-Agent"), "");
     }
     // for stringref
     parser.PartailParse(c_http_response);
 
     char buf[256] = {};
-    auto response = parser.plunderResponse();
+    auto response = parser.StealResponse();
     bool b = response.Serialize(buf, sizeof(buf));
     EXPECT_TRUE(b);
     bytes = response.ByteSize();
@@ -162,20 +162,20 @@ static void copyto_response() {
     EXPECT_EQ(bytes, s.size());
     EXPECT_TRUE(!parser.ParseError());
 
-#define _CHECK_DOC(parser)                                  \
-    EXPECT_EQ(parser.GetStatus(), "OK");                    \
-    EXPECT_EQ(parser.GetStatusCode(), 200);                 \
-    EXPECT_EQ(parser.GetMajor(), 1);                        \
-    EXPECT_EQ(parser.GetMinor(), 1);                        \
-    EXPECT_EQ(parser.GetField("Accept"), "XAccept");        \
-    EXPECT_EQ(parser.GetField("Host"), "domain.com");       \
-    EXPECT_EQ(parser.GetField("Connection"), "Keep-Alive"); \
-    EXPECT_EQ(parser.GetField("User-Agent"), "");           \
-    EXPECT_EQ(parser.GetBody(), "xyz")
+#define _CHECK_DOC(parser)                                           \
+    EXPECT_EQ(parser.GetDoc().GetStatus(), "OK");                    \
+    EXPECT_EQ(parser.GetDoc().GetStatusCode(), 200);                 \
+    EXPECT_EQ(parser.GetDoc().GetMajor(), 1);                        \
+    EXPECT_EQ(parser.GetDoc().GetMinor(), 1);                        \
+    EXPECT_EQ(parser.GetDoc().GetField("Accept"), "XAccept");        \
+    EXPECT_EQ(parser.GetDoc().GetField("Host"), "domain.com");       \
+    EXPECT_EQ(parser.GetDoc().GetField("Connection"), "Keep-Alive"); \
+    EXPECT_EQ(parser.GetDoc().GetField("User-Agent"), "");           \
+    EXPECT_EQ(parser.GetDoc().GetBody(), "xyz")
 
     _CHECK_DOC(parser);
 
-    auto response = parser.plunderResponse();
+    auto response = parser.StealResponse();
     TResponse<StringRef> responseRef(response);
 
     EXPECT_EQ(response.SerializeAsString(), responseRef.SerializeAsString());
