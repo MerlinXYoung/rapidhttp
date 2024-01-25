@@ -48,7 +48,7 @@ struct TRequest : public TDocument<StringT> {
     TRequest() : base_type(HTTP_REQUEST) {}
     using base_type::base_type;
 
-    inline Method GetMethod() const noexcept { return Method((int)base_type::method_); }
+    inline Method GetMethod() const noexcept { return Method((int)base_type::GetMethod()); }
 };
 
 }  // namespace rapidhttp
