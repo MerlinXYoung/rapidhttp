@@ -176,7 +176,7 @@ class TDocument {
     }
     inline this_type& SetStatus(uint16_t code, const char* status = nullptr) {
         status_code_ = code;
-        uri_or_status_ = status ? status : http_status_str(code);
+        uri_or_status_ = status ? status : http_status_str((http_status)code);
         return *this;
     }
     inline string_t const& GetStatus() const noexcept { return uri_or_status_; }

@@ -57,10 +57,10 @@ target("rapidjson")
            
             if has_config("with_pico") then
                 print("create rapidhttp/layer.hpp by pico ...")
-                os.vrun("./scripts/extract_pico.sh .")
+                os.vrun("$(projectdir)/scripts/extract_pico.sh .")
             else 
                 print("create rapidhttp/layer.hpp by http_parser ...")
-                os.vrun("./scripts/extract_http_parser.sh .")
+                os.vrun("$(projectdir)/scripts/extract_http_parser.sh .")
             end
         end
     end)

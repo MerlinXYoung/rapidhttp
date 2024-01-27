@@ -49,7 +49,7 @@ void partail_parse() {
     // 2.调用PartailParse解析数据流的一部分
     int pos = 27;
     size_t bytes = parser.PartailParse(c_http_request.c_str(), pos);
-
+    (void)bytes;
     // 3.判断解析是否出错
     if (parser.ParseError()) {
         // 打印错误描述信息

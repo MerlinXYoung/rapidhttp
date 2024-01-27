@@ -24,10 +24,12 @@ echo "} //namespace rapidhttp" >> $dest
 sed -i 's/^unsigned long http_parser_version(void);/inline &/g' $dest
 sed -i 's/^void http_parser_init(.*);/inline &/g' $dest
 sed -i 's/^void http_parser_settings_init(.*);/inline &/g' $dest
+sed -i 's/^int http_message_needs_eof\s*(.*/inline &/g' $dest
 sed -i 's/^size_t http_parser_execute\s*(.*/inline &/g' $dest
 sed -i 's/^int http_should_keep_alive(.*);/inline &/g' $dest
 
 sed -i 's/^const char \*http_method_str(.*);/inline &/g' $dest
+sed -i 's/^const char \*http_status_str(.*);/inline &/g' $dest
 sed -i 's/^const char \*http_errno_name(.*);/inline &/g' $dest
 sed -i 's/^const char \*http_errno_description(.*);/inline &/g' $dest
 sed -i 's/^void http_parser_url_init(.*);/inline &/g' $dest
@@ -35,6 +37,7 @@ sed -i 's/^void http_parser_url_init(.*);/inline &/g' $dest
 sed -i 's/^int http_parser_parse_url(.*/inline &/g' $dest
 sed -i 's/^void http_parser_pause(.*);/inline &/g' $dest
 sed -i 's/^int http_body_is_final(.*);/inline &/g' $dest
+sed -i 's/^void http_parser_set_max_header_size(.*);/inline &/g' $dest
 
 sed -i 's/^unsigned long$/inline &/g' $dest
 sed -i 's/^static enum state$/inline &/g' $dest

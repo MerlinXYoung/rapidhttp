@@ -419,7 +419,7 @@ inline int http_should_keep_alive(const http_parser *parser);
 inline const char *http_method_str(enum http_method m);
 
 /* Returns a string version of the HTTP status code. */
-const char *http_status_str(enum http_status s);
+inline const char *http_status_str(enum http_status s);
 
 /* Return a string name of the given error */
 inline const char *http_errno_name(enum http_errno err);
@@ -442,7 +442,7 @@ inline void http_parser_pause(http_parser *parser, int paused);
 inline int http_body_is_final(const http_parser *parser);
 
 /* Change the maximum header size provided at compile time. */
-void http_parser_set_max_header_size(uint32_t size);
+inline void http_parser_set_max_header_size(uint32_t size);
 
 #ifdef __cplusplus
 }
@@ -928,7 +928,7 @@ static struct {
 };
 #undef HTTP_STRERROR_GEN
 
-int http_message_needs_eof(const http_parser *parser);
+inline int http_message_needs_eof(const http_parser *parser);
 
 /* Our URL parser.
  *
@@ -941,7 +941,7 @@ int http_message_needs_eof(const http_parser *parser);
  * assumed that the caller cares about (and can detect) the transition between
  * URL and non-URL states by looking for these.
  */
-inline static enum state
+static enum state
 parse_url_char(enum state s, const char ch)
 {
   if (ch == ' ' || ch == '\r' || ch == '\n') {
@@ -2607,7 +2607,7 @@ error:
 
 
 /* Does the parser need to see an EOF to find the end of the message? */
-inline int
+int
 http_message_needs_eof (const http_parser *parser)
 {
   if (parser->type == HTTP_REQUEST) {
@@ -2636,7 +2636,7 @@ http_message_needs_eof (const http_parser *parser)
 }
 
 
-inline int
+int
 http_should_keep_alive (const http_parser *parser)
 {
   if (parser->http_major > 0 && parser->http_minor > 0) {
@@ -2655,13 +2655,13 @@ http_should_keep_alive (const http_parser *parser)
 }
 
 
-inline const char *
+const char *
 http_method_str (enum http_method m)
 {
   return ELEM_AT(method_strings, m, "<unknown>");
 }
 
-inline const char *
+const char *
 http_status_str (enum http_status s)
 {
   switch (s) {
@@ -2672,7 +2672,7 @@ http_status_str (enum http_status s)
   }
 }
 
-inline void
+void
 http_parser_init (http_parser *parser, enum http_parser_type t)
 {
   void *data = parser->data; /* preserve application data */
@@ -2683,25 +2683,25 @@ http_parser_init (http_parser *parser, enum http_parser_type t)
   parser->http_errno = HPE_OK;
 }
 
-inline void
+void
 http_parser_settings_init(http_parser_settings *settings)
 {
   memset(settings, 0, sizeof(*settings));
 }
 
-inline const char *
+const char *
 http_errno_name(enum http_errno err) {
   assert(((size_t) err) < ARRAY_SIZE(http_strerror_tab));
   return http_strerror_tab[err].name;
 }
 
-inline const char *
+const char *
 http_errno_description(enum http_errno err) {
   assert(((size_t) err) < ARRAY_SIZE(http_strerror_tab));
   return http_strerror_tab[err].description;
 }
 
-inline static enum http_host_state
+static enum http_host_state
 http_parse_host_char(enum http_host_state s, const char ch) {
   switch(s) {
     case s_http_userinfo:
@@ -2783,7 +2783,7 @@ http_parse_host_char(enum http_host_state s, const char ch) {
   return s_http_host_dead;
 }
 
-inline static int
+static int
 http_parse_host(const char * buf, struct http_parser_url *u, int found_at) {
   enum http_host_state s;
 
@@ -2865,12 +2865,12 @@ http_parse_host(const char * buf, struct http_parser_url *u, int found_at) {
   return 0;
 }
 
-inline void
+void
 http_parser_url_init(struct http_parser_url *u) {
   memset(u, 0, sizeof(*u));
 }
 
-inline int
+int
 http_parser_parse_url(const char *buf, size_t buflen, int is_connect,
                       struct http_parser_url *u)
 {
@@ -2993,7 +2993,7 @@ http_parser_parse_url(const char *buf, size_t buflen, int is_connect,
   return 0;
 }
 
-inline void
+void
 http_parser_pause(http_parser *parser, int paused) {
   /* Users should only be pausing/unpausing a parser that is not in an error
    * state. In non-debug builds, there's not much that we can do about this
@@ -3008,27 +3008,30 @@ http_parser_pause(http_parser *parser, int paused) {
   }
 }
 
-inline int
+int
 http_body_is_final(const struct http_parser *parser) {
     return parser->state == s_message_done;
 }
 
-inline unsigned long
+unsigned long
 http_parser_version(void) {
   return HTTP_PARSER_VERSION_MAJOR * 0x10000 |
          HTTP_PARSER_VERSION_MINOR * 0x00100 |
          HTTP_PARSER_VERSION_PATCH * 0x00001;
 }
 
-inline void
+void
 http_parser_set_max_header_size(uint32_t size) {
   max_header_size = size;
 }
 } //namespace rapidhttp
 namespace rapidhttp {
+namespace detail {
+constexpr size_t constLength(const char* str) { return (*str == 0) ? 0 : constLength(str + 1) + 1; }
+}  // namespace detail
 inline int http_method_str_len(http_method m) {
     static constexpr uint8_t method_string_lens[] = {
-#define XX(num, name, string) (uint8_t)::strlen(#string),
+#define XX(num, name, string) (uint8_t) detail::constLength(#string),
         HTTP_METHOD_MAP(XX)
 #undef XX
     };

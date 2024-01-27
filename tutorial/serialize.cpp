@@ -42,7 +42,7 @@ void serialize() {
         cout << "serialize output:\n" << std::string(buf, bytes) << endl;
     }
 
-    delete buf;
+    delete[] buf;
 
     // 9.不在乎性能时, 也可以直接序列化成std::string, 不必关心长度.
     std::string output = doc.SerializeAsString();
