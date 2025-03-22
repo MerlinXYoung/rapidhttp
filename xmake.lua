@@ -12,7 +12,6 @@ option("with_pico")
     set_default(false)
     set_showmenu(true)
     set_description("use pico")
-    set_configvar("USE_PICO", 1)
 option_end()
 
 option("WITH_PROFILE")
@@ -38,8 +37,12 @@ add_includedirs("./include")
 
 target("rapidjson")
     set_kind("headeronly")
+    add_options("with_pico")
     add_headerfiles("./include/**.h","./include/**.hpp", {prefixdir = "rapidhttp"})
     -- add_installfiles("./include/**.h", {prefixdir = "rapidhttp"})
+    if has_config("with_pico") then 
+        set_configvar("USE_PICO", 1)
+    end
     set_configdir("./include/rapidhttp/")
     add_configfiles("./include/rapidhttp/cmake_config.h.in",{filename = "cmake_config.h"})
     on_config(function (target) 
@@ -51,15 +54,17 @@ target("rapidjson")
         os.vrun("rm -rf ./include/rapidhttp/layer.hpp")
     end)
     on_build(function (target) 
-    --  print(has_config("with_pico"), is_config("with_pico", true), get_config("with_pico") )
+        -- print(has_config("with_pico"), is_config("with_pico", true), get_config("with_pico") )
         if not os.exists("./include/rapidhttp/layer.hpp") then
             -- print("%%%d: %s", opt.progress, "./include/rapidhttp/layer.hpp")
            
             if has_config("with_pico") then
                 print("create rapidhttp/layer.hpp by pico ...")
+                os.vrun("dos2unix $(projectdir)/scripts/extract_pico.sh")
                 os.vrun("$(projectdir)/scripts/extract_pico.sh .")
             else 
                 print("create rapidhttp/layer.hpp by http_parser ...")
+                os.vrun("dos2unix $(projectdir)/scripts/extract_http_parser.sh")
                 os.vrun("$(projectdir)/scripts/extract_http_parser.sh .")
             end
         end

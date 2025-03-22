@@ -40,12 +40,12 @@ class ParseErrorCategory : public std::error_category {
     }
 };
 
-inline std::error_code MakeErrorCode(eErrorCode code) {
+inline std::error_code MakeErrorCode(eErrorCode code) noexcept {
     static ErrorCategory category;
     return std::error_code((int)code, category);
 }
 
-inline std::error_code MakeParseErrorCode(int code) {
+inline std::error_code MakeParseErrorCode(int code) noexcept {
     static ParseErrorCategory category;
     return std::error_code(code, category);
 }

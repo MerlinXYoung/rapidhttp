@@ -15,6 +15,11 @@ echo "namespace rapidhttp {" >> $dest
 tail -n +$tail_start $1/third_party/picohttpparser/picohttpparser.c >> $dest
 echo "} //namespace rapidhttp" >> $dest
 
+echo "namespace rapidhttp {" >> $dest
+cat $1/scripts/http_method.h >> $dest
+cat $1/scripts/helper.h >> $dest
+echo "} //namespace rapidhttp" >> $dest
+
 # add inline key-word
 sed -i 's/^int phr_parse_request(.*/inline &/g' $dest
 sed -i 's/^int phr_parse_response(.*/inline &/g' $dest

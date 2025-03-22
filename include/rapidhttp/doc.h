@@ -21,7 +21,7 @@ class TDocument {
     using header_type = std::pair<string_t, string_t>;
     using headers_type = std::vector<header_type>;
     using this_type = TDocument<string_t>;
-    inline constexpr TDocument(int type = http_parser_type::HTTP_BOTH)
+    inline constexpr TDocument(int type = http_parser_type::HTTP_BOTH) noexcept
         : type_(type), major_(1), minor_(1) {}
 
     TDocument(http_method method, string_t&& uri, headers_type&& header_fields, string_t&& body,
@@ -35,7 +35,7 @@ class TDocument {
           body_(body) {}
 
     TDocument(uint32_t code, string_t&& status, headers_type&& header_fields, string_t&& body,
-              uint32_t major = 1, uint32_t minor = 1)
+              uint32_t major = 1, uint32_t minor = 1) noexcept
         : type_(HTTP_RESPONSE),
           major_(major),
           minor_(major),
@@ -113,36 +113,36 @@ class TDocument {
     inline void Reset();
 
     /// 是否全部初始化完成, Serialize之前会做这个校验
-    inline bool IsInitialized() const;
+    inline bool IsInitialized() const noexcept;
 
     /// Serialize后的数据长度
-    inline size_t ByteSize() const;
+    inline size_t ByteSize() const noexcept;
 
     /// 序列化
-    inline bool Serialize(char* buf, size_t len);
-    inline std::string SerializeAsString();
+    inline bool Serialize(char* buf, size_t len) const noexcept;
+    inline std::string SerializeAsString() const;
     /// --------------------------------------------------------
 
     /// ------------------- fields get/set ---------------------
     inline uint32_t GetMajor() const noexcept { return major_; }
-    inline this_type& SetMajor(uint32_t major) {
+    inline this_type& SetMajor(uint32_t major) noexcept {
         major_ = major;
         return *this;
     }
     inline uint32_t GetMinor() const noexcept { return minor_; }
-    inline this_type& SetMinor(uint32_t minor) {
+    inline this_type& SetMinor(uint32_t minor) noexcept {
         minor_ = minor;
         return *this;
     }
     inline uint32_t GetVersion() const noexcept { return major_ * 10 + minor_; }
-    inline this_type& SetVersion(uint32_t version) {
+    inline this_type& SetVersion(uint32_t version) noexcept {
         assert(version < 100);
         major_ = version / 10;
         minor_ = version % 10;
         return *this;
     }
     inline http_method GetMethod() const noexcept { return (http_method)method_; }
-    inline this_type& SetMethod(http_method method) {
+    inline this_type& SetMethod(http_method method) noexcept {
         method_ = method;
         return *this;
     }
@@ -170,7 +170,7 @@ class TDocument {
         return *this;
     }
     inline uint16_t GetStatusCode() const noexcept { return status_code_; }
-    inline this_type& SetStatusCode(uint16_t code) {
+    inline this_type& SetStatusCode(uint16_t code) noexcept {
         status_code_ = code;
         return *this;
     }
@@ -386,7 +386,7 @@ inline bool TDocument<StringT>::CheckVersion() const noexcept {
 }
 
 template <typename StringT>
-inline bool TDocument<StringT>::IsInitialized() const {
+inline bool TDocument<StringT>::IsInitialized() const noexcept {
     if (IsRequest())
         return CheckMethod() && CheckUri() && CheckVersion();
     else
@@ -394,7 +394,7 @@ inline bool TDocument<StringT>::IsInitialized() const {
 }
 
 template <typename StringT>
-inline size_t TDocument<StringT>::ByteSize() const {
+inline size_t TDocument<StringT>::ByteSize() const noexcept {
     if (!IsInitialized()) return 0;
 
     size_t bytes = 0;
@@ -417,7 +417,7 @@ inline size_t TDocument<StringT>::ByteSize() const {
 }
 
 template <typename StringT>
-inline bool TDocument<StringT>::Serialize(char* buf, size_t len) {
+inline bool TDocument<StringT>::Serialize(char* buf, size_t len) const noexcept {
     size_t bytes = ByteSize();
     if (!bytes || len < bytes) return false;
 #define _WRITE_STRING(ss)                  \
@@ -476,7 +476,7 @@ inline bool TDocument<StringT>::Serialize(char* buf, size_t len) {
 #undef _WRITE_STRING
 }
 template <typename StringT>
-inline std::string TDocument<StringT>::SerializeAsString() {
+inline std::string TDocument<StringT>::SerializeAsString() const {
     std::string s;
     size_t bytes = ByteSize();
     if (!bytes) return "";

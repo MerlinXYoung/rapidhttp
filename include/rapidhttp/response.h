@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "doc.h"
+// #include "document.h"
 #include "status.h"
 #include "util.h"
 
@@ -18,7 +19,7 @@ struct TResponse : public TDocument<StringT> {
     using header_type = typename base_type::header_type;
     using headers_type = typename base_type::headers_type;
     using this_type = TResponse<string_t>;
-    TResponse() : base_type(HTTP_RESPONSE) {}
+    TResponse() noexcept: base_type(HTTP_RESPONSE) {}
     using base_type::base_type;
 };
 

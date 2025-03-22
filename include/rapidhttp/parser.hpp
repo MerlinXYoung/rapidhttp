@@ -56,7 +56,7 @@ inline bool TParser<StringT>::PartailParseEof() {
     return ParseDone();
 }
 template <typename StringT>
-inline bool TParser<StringT>::ParseDone() {
+inline bool TParser<StringT>::ParseDone() const noexcept {
     return parse_done_;
 }
 
@@ -176,7 +176,7 @@ inline void TParser<StringT>::Reset() {
 
 // 返回解析错误码
 template <typename StringT>
-inline std::error_code TParser<StringT>::ParseError() {
+inline std::error_code TParser<StringT>::ParseError() const noexcept {
     return ec_;
 }
 
@@ -184,14 +184,14 @@ template <typename StringT>
 inline typename TParser<StringT>::request_t&& TParser<StringT>::StealRequest() {
     // return request_t(request_method_, std::move(request_uri_), std::move(header_fields_),
     //                  std::move(body_), major_, minor_);
-    return (request_t &&) std::move(doc_);
+    return (request_t&&)std::move(doc_);
 }
 template <typename StringT>
 inline typename TParser<StringT>::response_t&& TParser<StringT>::StealResponse() {
     // return response_t(response_status_code_, std::move(response_status_),
     // std::move(header_fields_),
     //                   std::move(body_), major_, minor_);
-    return (response_t &&) std::move(doc_);
+    return (response_t&&)std::move(doc_);
 }
 template <typename StringT>
 template <typename OStringT>
@@ -199,14 +199,14 @@ inline TRequest<OStringT>&& TParser<StringT>::StealRequest() {
     // return TRequest<OStringT>(request_method_, std::move(request_uri_),
     // std::move(header_fields_),
     //                           std::move(body_), major_, minor_);
-    return (request_t &&) std::move(doc_);
+    return (request_t&&)std::move(doc_);
 }
 template <typename StringT>
 template <typename OStringT>
 inline TResponse<OStringT>&& TParser<StringT>::StealResponse() {
     // return TResponse<OStringT>(response_status_code_, std::move(response_status_),
     //                            std::move(header_fields_), std::move(body_), major_, minor_);
-    return (response_t &&) std::move(doc_);
+    return (response_t&&)std::move(doc_);
 }
 /// --------------------------------------------------------
 

@@ -1,5 +1,6 @@
 #include <benchmark/benchmark.h>
-#include <rapidhttp/document.h>
+// #include <rapidhttp/document.h>
+// #include <rapidhttp/doc.h>
 #include <rapidhttp/parser.h>
 #include <stdio.h>
 #if PROFILE

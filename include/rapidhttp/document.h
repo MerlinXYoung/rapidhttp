@@ -1,38 +1,38 @@
 #pragma once
 
-#include <string>
-#include <map>
-#include <vector>
-#include <stdint.h>
 #include <rapidhttp/constants.h>
-#include <rapidhttp/stringref.h>
 #include <rapidhttp/error_code.h>
+#include <rapidhttp/stringref.h>
+#include <stdint.h>
+
+#include <map>
 #include <rapidhttp/layer.hpp>
+#include <string>
+#include <vector>
+
 #include "cmake_config.h"
 
 namespace rapidhttp {
 
-enum DocumentType
-{
+enum DocumentType {
     Request,
     Response,
 };
 
 // Http Header document class.
 template <typename StringT>
-class THttpDocument
-{
-public:
+class THttpDocument {
+  public:
     typedef StringT string_t;
 
     explicit THttpDocument(DocumentType type);
     THttpDocument(THttpDocument const& other) = delete;
-    THttpDocument(THttpDocument && other) = delete;
+    THttpDocument(THttpDocument&& other) = delete;
     THttpDocument& operator=(THttpDocument const& other) = delete;
-    THttpDocument& operator=(THttpDocument && other) = delete;
+    THttpDocument& operator=(THttpDocument&& other) = delete;
 
     template <typename OStringT>
-    void CopyTo(THttpDocument<OStringT> & clone) const;
+    void CopyTo(THttpDocument<OStringT>& clone) const;
 
     /// ------------------- parse/generate ---------------------
     /// 流式解析
@@ -42,7 +42,7 @@ public:
     inline size_t PartailParse(const char* buf_ref, size_t len);
     inline size_t PartailParse(std::string const& buf);
 
-    /// 解析eof 
+    /// 解析eof
     // 解析Response时, 断开链接时要调用这个接口, 因为有些response协议需要读取到
     // 网络链接断开为止.
     inline bool PartailParseEof();
@@ -64,12 +64,12 @@ public:
     inline size_t ByteSize() const;
 
     /// 序列化
-    inline bool Serialize(char *buf, size_t len);
+    inline bool Serialize(char* buf, size_t len);
     inline std::string SerializeAsString();
     /// --------------------------------------------------------
 
     /// ------------------- fields get/set ---------------------
-    inline string_t const& GetMethod();
+    inline string_t const& GetMethod() const;
     inline void SetMethod(const char* m);
     inline void SetMethod(std::string const& m);
 
@@ -102,39 +102,39 @@ public:
     inline bool IsRequest() const { return type_ == Request; }
     inline bool IsResponse() const { return type_ == Response; }
 
-private:
-    inline bool CheckMethod() const;
-    inline bool CheckUri() const;
-    inline bool CheckStatusCode() const;
-    inline bool CheckStatus() const;
-    inline bool CheckVersion() const;
+  private:
+    inline bool CheckMethod() const noexcept;
+    inline bool CheckUri() const noexcept;
+    inline bool CheckStatusCode() const noexcept;
+    inline bool CheckStatus() const noexcept;
+    inline bool CheckVersion() const noexcept;
 
 #if USE_PICO
 #else
     // http-parser
-private:
-    static inline int sOnHeadersComplete(http_parser *parser);
-    static inline int sOnMessageComplete(http_parser *parser);
-    static inline int sOnUrl(http_parser *parser, const char *at, size_t length);
-    static inline int sOnStatus(http_parser *parser, const char *at, size_t length);
-    static inline int sOnHeaderField(http_parser *parser, const char *at, size_t length);
-    static inline int sOnHeaderValue(http_parser *parser, const char *at, size_t length);
-    static inline int sOnBody(http_parser *parser, const char *at, size_t length);
+  private:
+    static inline int sOnHeadersComplete(http_parser* parser);
+    static inline int sOnMessageComplete(http_parser* parser);
+    static inline int sOnUrl(http_parser* parser, const char* at, size_t length);
+    static inline int sOnStatus(http_parser* parser, const char* at, size_t length);
+    static inline int sOnHeaderField(http_parser* parser, const char* at, size_t length);
+    static inline int sOnHeaderValue(http_parser* parser, const char* at, size_t length);
+    static inline int sOnBody(http_parser* parser, const char* at, size_t length);
 
-    inline int OnHeadersComplete(http_parser *parser);
-    inline int OnMessageComplete(http_parser *parser);
-    inline int OnUrl(http_parser *parser, const char *at, size_t length);
-    inline int OnStatus(http_parser *parser, const char *at, size_t length);
-    inline int OnHeaderField(http_parser *parser, const char *at, size_t length);
-    inline int OnHeaderValue(http_parser *parser, const char *at, size_t length);
-    inline int OnBody(http_parser *parser, const char *at, size_t length);
+    inline int OnHeadersComplete(http_parser* parser);
+    inline int OnMessageComplete(http_parser* parser);
+    inline int OnUrl(http_parser* parser, const char* at, size_t length);
+    inline int OnStatus(http_parser* parser, const char* at, size_t length);
+    inline int OnHeaderField(http_parser* parser, const char* at, size_t length);
+    inline int OnHeaderValue(http_parser* parser, const char* at, size_t length);
+    inline int OnBody(http_parser* parser, const char* at, size_t length);
 #endif
 
-private:
-    DocumentType type_;     // 类型
+  private:
+    DocumentType type_;  // 类型
 
     bool parse_done_ = false;
-    std::error_code ec_;    // 解析错状态
+    std::error_code ec_;  // 解析错状态
 
 #if USE_PICO
 #else
@@ -164,6 +164,6 @@ private:
     friend class THttpDocument;
 };
 
-} //namespace rapidhttp 
+}  // namespace rapidhttp
 
 #include "document.hpp"

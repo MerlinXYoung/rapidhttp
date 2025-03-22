@@ -5,18 +5,25 @@
 #include <string.h>
 
 #include <string>
+#ifndef likely
+#define likely(x) __builtin_expect(!!(x), 1)
+#endif
 
+#ifndef unlikely
+#define unlikely(x) __builtin_expect(!!(x), 0)
+#endif
 namespace rapidhttp {
 
 class StringRef {
   public:
-    StringRef() : owner_(false), len_(0), str_("") {}
+    StringRef() noexcept : owner_(false), len_(0), str_("") {}
 
-    StringRef(const char* str, uint32_t len) : owner_(false), len_(len), str_(str) {}
+    StringRef(const char* str, uint32_t len) noexcept : owner_(false), len_(len), str_(str) {}
 
     StringRef(StringRef const& other) {
         if (other.owner_ && other.len_) {
             char* buf = (char*)malloc(other.len_);
+            if (unlikely(!buf)) throw std::bad_alloc();
             memcpy(buf, other.str_, other.len_);
             str_ = buf;
         } else
@@ -32,6 +39,7 @@ class StringRef {
 
         if (other.owner_ && other.len_) {
             char* buf = (char*)malloc(other.len_);
+            if (unlikely(!buf)) throw std::bad_alloc();
             memcpy(buf, other.str_, other.len_);
             str_ = buf;
         } else
@@ -99,6 +107,7 @@ class StringRef {
     void SetOwner() {
         if (!owner_ && len_) {
             char* buf = (char*)malloc(len_);
+            if (unlikely(!buf)) throw std::bad_alloc();
             memcpy(buf, str_, len_);
             str_ = buf;
             owner_ = true;
@@ -120,8 +129,10 @@ class StringRef {
             char* buf = nullptr;
             if (owner_) {
                 buf = (char*)realloc((void*)str_, new_len);
+                if (unlikely(!buf)) throw std::bad_alloc();
             } else {
                 buf = (char*)malloc(new_len);
+                if (unlikely(!buf)) throw std::bad_alloc();
                 memcpy(buf, str_, len_);
             }
 

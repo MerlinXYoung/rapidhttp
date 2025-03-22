@@ -50,14 +50,14 @@ class TParser {
     inline bool PartailParseEof();
 
     /// 是否解析成功
-    inline bool ParseDone();
+    inline bool ParseDone() const noexcept;
 
     /// 重置解析流状态
     // 同时清除解析流状态和已解析成功的数据状态
     inline void Reset();
 
     /// 返回解析错误码
-    inline std::error_code ParseError();
+    inline std::error_code ParseError() const noexcept;
 
     inline const document_type &GetDoc() const noexcept { return doc_; }
     inline document_type &&StealDoc() { return std::move(doc_); }
@@ -74,11 +74,11 @@ class TParser {
     inline bool IsResponse() const noexcept { return doc_.IsResponse(); }
 
   private:
-    inline bool CheckMethod() const;
-    inline bool CheckUri() const;
-    inline bool CheckStatusCode() const;
-    inline bool CheckStatus() const;
-    inline bool CheckVersion() const;
+    inline bool CheckMethod() const noexcept;
+    inline bool CheckUri() const noexcept;
+    inline bool CheckStatusCode() const noexcept;
+    inline bool CheckStatus() const noexcept;
+    inline bool CheckVersion() const noexcept;
 
 #if USE_PICO
 #else

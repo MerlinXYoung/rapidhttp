@@ -213,22 +213,22 @@ class Status {
         xxx_max = 1023
     };
 
-    inline bool isInformational(int code) {
+    inline bool isInformational(int code) noexcept {
         return (code >= 100 && code < 200);
     }  //!< \returns \c true if the given \p code is an informational code.
-    inline bool isSuccessful(int code) {
+    inline bool isSuccessful(int code) noexcept {
         return (code >= 200 && code < 300);
     }  //!< \returns \c true if the given \p code is a successful code.
-    inline bool isRedirection(int code) {
+    inline bool isRedirection(int code) noexcept {
         return (code >= 300 && code < 400);
     }  //!< \returns \c true if the given \p code is a redirectional code.
-    inline bool isClientError(int code) {
+    inline bool isClientError(int code) noexcept {
         return (code >= 400 && code < 500);
     }  //!< \returns \c true if the given \p code is a client error code.
-    inline bool isServerError(int code) {
+    inline bool isServerError(int code) noexcept {
         return (code >= 500 && code < 600);
     }  //!< \returns \c true if the given \p code is a server error code.
-    inline bool isError(int code) {
+    inline bool isError(int code) noexcept {
         return (code >= 400);
     }  //!< \returns \c true if the given \p code is any type of error code.
 
@@ -237,7 +237,7 @@ class Status {
      * \return The standard HTTP reason phrase for the given \p code or an empty \c std::string()
      * if no standard phrase for the given \p code is known.
      */
-    inline const char* toCStr() {
+    inline const char* toCStr() noexcept {
         switch (value_) {
             // ####### 1xx - Informational #######
             case 100:

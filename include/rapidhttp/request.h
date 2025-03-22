@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "doc.h"
+// #include "document.h"
 namespace rapidhttp {
 
 struct Method {
@@ -14,7 +15,7 @@ struct Method {
         HTTP_METHOD_MAP(XX)
 #undef XX
     };
-    inline constexpr Method(int m) : value_(m){};
+    inline constexpr Method(int m) noexcept : value_(m) {};
     inline bool isDelete() const noexcept { return DELETE == value_; }
     inline bool isGet() const noexcept { return GET == value_; }
     inline bool isHead() const noexcept { return HEAD == value_; }
@@ -30,7 +31,7 @@ struct Method {
     inline const char* toCStr() const noexcept { return http_method_str(http_method(value_)); }
     inline uint32_t strLen() const noexcept { return http_method_str_len(http_method(value_)); }
 
-    static Method from(const char* str) { return get_http_method(str); }
+    static Method from(const char* str) noexcept { return get_http_method(str); }
 
   private:
     int value_;
@@ -45,7 +46,7 @@ struct TRequest : public TDocument<StringT> {
     using header_type = typename base_type::header_type;
     using headers_type = typename base_type::headers_type;
     using this_type = TRequest<string_t>;
-    TRequest() : base_type(HTTP_REQUEST) {}
+    TRequest() noexcept: base_type(HTTP_REQUEST) {}
     using base_type::base_type;
 
     inline Method GetMethod() const noexcept { return Method((int)base_type::GetMethod()); }
