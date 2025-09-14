@@ -60,12 +60,12 @@ target("rapidjson")
            
             if has_config("with_pico") then
                 print("create rapidhttp/layer.hpp by pico ...")
-                os.vrun("dos2unix $(projectdir)/scripts/extract_pico.sh")
-                os.vrun("$(projectdir)/scripts/extract_pico.sh .")
+                os.vrun("dos2unix $(scriptdir)/scripts/extract_pico.sh")
+                os.vrun("$(scriptdir)/scripts/extract_pico.sh .")
             else 
                 print("create rapidhttp/layer.hpp by http_parser ...")
-                os.vrun("dos2unix $(projectdir)/scripts/extract_http_parser.sh")
-                os.vrun("$(projectdir)/scripts/extract_http_parser.sh .")
+                os.vrun("dos2unix $(scriptdir)/scripts/extract_http_parser.sh")
+                os.vrun("$(scriptdir)/scripts/extract_http_parser.sh .")
             end
         end
     end)
@@ -117,5 +117,5 @@ target("benchmark")
     end
     add_packages("benchmark",{links={"benchmark",  "pthread"}}) 
     
-target_end()
+
     
