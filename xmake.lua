@@ -1,11 +1,12 @@
 set_xmakever("2.8.5")
-set_project("rapidjson")
+set_project("rapidhttp")
 set_config("plat", os.host())
 
 set_languages("c++11")
 set_warnings("all","error")
 
 add_rules("mode.debug", "mode.release", "mode.releasedbg")
+
 
 set_configvar("USE_PICO", 0)
 option("with_pico")
@@ -30,12 +31,12 @@ option_end()
 
 add_requireconfs("gtest", {configs={main=true}})
 add_requireconfs("gperftools", {configs={unwind=true}})
-add_requires("gtest 1.12.0", "benchmark", "gperftools")
+add_requires("gtest >=1.12.0", "benchmark", "gperftools")
 -- , "libunwind")
 
 add_includedirs("./include")
 
-target("rapidjson")
+target("rapidhttp")
     set_kind("headeronly")
     add_options("with_pico")
     add_headerfiles("./include/**.h","./include/**.hpp", {prefixdir = "rapidhttp"})
@@ -84,7 +85,7 @@ function scan_targets(prefix)
             set_kind("binary")
             set_default(false)
             add_files(source)
-            add_deps("rapidjson")
+            add_deps("rapidhttp")
         target_end()
     end
 end
@@ -96,7 +97,7 @@ target("unitest")
     set_kind("binary")
     set_default(false)
     add_files("test/*.cpp")
-    add_deps("rapidjson")
+    add_deps("rapidhttp")
     add_packages("gtest")
 
     add_tests("default")
@@ -105,7 +106,7 @@ target("benchmark")
     set_kind("binary")
     set_default(false)
     add_files("benchmark/*.cpp")
-    add_deps("rapidjson")
+    add_deps("rapidhttp")
     add_options("WITH_PROFILE")
     set_symbols("debug")
     
