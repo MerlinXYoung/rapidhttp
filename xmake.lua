@@ -38,6 +38,7 @@ add_includedirs("./include")
 
 target("rapidhttp")
     set_kind("headeronly")
+    add_includedirs("./include",{public=true})
     add_options("with_pico")
     add_headerfiles("./include/**.h","./include/**.hpp", {prefixdir = "rapidhttp"})
     -- add_installfiles("./include/**.h", {prefixdir = "rapidhttp"})
